@@ -26,7 +26,7 @@ export default function Search() {
 
   // 按优先级排序: aggregated > migu > qq
   const orderedProviders = providers.sort((a, b) => {
-    const order = { aggregated: 0, migu: 1, qq: 2 }
+    const order = { aggregated: 0, migu: 1, qq: 2, kugou: 3 }
     return (order[a] || 99) - (order[b] || 99)
   })
 

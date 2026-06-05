@@ -64,7 +64,7 @@ function Player() {
 
   const isMountedRef = useRef(false)
   const audioRef = useRef(null)
-  let interval
+  const intervalRef = useRef(null)
 
   useEffect(() => {
     if (isMountedRef.current) {
@@ -158,10 +158,10 @@ function Player() {
     // sendSongToServer();
   }
   function onAudioPlay() {
-    if (interval) {
-      clearInterval(interval)
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
     }
-    interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setPlayProgress(audioRef.current.currentTime)
     }, 1000)
     setPaused(false)
@@ -170,13 +170,13 @@ function Player() {
     setAudioCurrentTime(audioRef.current.currentTime)
   }
   function onAudioPause() {
-    if (interval) {
-      clearInterval(interval)
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
     }
     setPaused(true)
   }
   function onAudioEnded() {
-    clearInterval(interval)
+    clearInterval(intervalRef.current)
     if (playMode === 'single') {
       playCurrentSongAgain()
     } else {
