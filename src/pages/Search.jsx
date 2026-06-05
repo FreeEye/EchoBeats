@@ -18,9 +18,16 @@ export default function Search() {
     }
   }, [keyword, updateSearchKeyword])
 
-  const filtered = Object.keys(searchResults).filter((key) => {
-    const result = searchResults[key]
-    return result && result.searchSuccess && result.data && result.data.totalCount > 0
+  // 检查是否有任何有效结果
+  const providers = Object.keys(searchResults)
+  const hasResults = providers.some(
+    (key) => searchResults[key]?.searchSuccess && searchResults[key]?.data?.songs?.length > 0
+  )
+
+  // 按优先级排序: aggregated > migu > qq
+  const orderedProviders = providers.sort((a, b) => {
+    const order = { aggregated: 0, migu: 1, qq: 2 }
+    return (order[a] || 99) - (order[b] || 99)
   })
 
   return (
@@ -42,10 +49,10 @@ export default function Search() {
           </span>
         </div>
       )}
-      {filtered.map((key) => (
+      {orderedProviders.map((key) => (
         <SearchResult result={searchResults[key]} provider={key} key={key} />
       ))}
-      {filtered.length === 0 && searchStatus === 'done' && (
+      {!hasResults && searchStatus === 'done' && (
         <div
           className="white-card"
           style={{

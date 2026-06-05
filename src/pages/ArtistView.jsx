@@ -11,37 +11,32 @@ export default function ArtistView() {
   const { name } = useParams()
   const decodedName = decodeURIComponent(name || '')
   const [loading, setLoading] = useState(true)
-  const [artistSongs, setArtistSongs] = useState([])
+  const [songs, setSongs] = useState([])
   const [artistPic, setArtistPic] = useState(null)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!decodedName) return
     document.title = `EchoBeats - ${decodedName}`
     setLoading(true)
+    setError(null)
 
     Promise.allSettled([
-      fetch('/api/songs'),
-      fetch('/api/hot-songs'),
-      fetch('/api/new-songs'),
+      fetch(`/api/songs-of-artist/${encodeURIComponent(decodedName)}`),
       fetch('/api/artists'),
     ])
-      .then(async ([songsRes, hotRes, newRes, artistsRes]) => {
-        const songs = []
-
+      .then(async ([songsRes, artistsRes]) => {
         if (songsRes.status === 'fulfilled' && songsRes.value.ok) {
           const d = await songsRes.value.json()
-          if (d.success) songs.push(...d.songs)
-        }
-        if (hotRes.status === 'fulfilled' && hotRes.value.ok) {
-          const d = await hotRes.value.json()
-          if (d.success) songs.push(...d.songs)
-        }
-        if (newRes.status === 'fulfilled' && newRes.value.ok) {
-          const d = await newRes.value.json()
-          if (d.success) songs.push(...d.songs)
+          if (d.songs && Array.isArray(d.songs)) {
+            setSongs(d.songs)
+          } else {
+            setError('暂无该艺人的歌曲数据')
+          }
+        } else {
+          setError('暂无该艺人的歌曲数据')
         }
 
-        // 获取艺人头像
         if (artistsRes.status === 'fulfilled' && artistsRes.value.ok) {
           const d = await artistsRes.value.json()
           if (d.success) {
@@ -49,26 +44,6 @@ export default function ArtistView() {
             if (found) setArtistPic(found.pic)
           }
         }
-
-        // 去重
-        const seen = new Set()
-        const unique = songs.filter((s) => {
-          if (seen.has(s.newId)) return false
-          seen.add(s.newId)
-          return true
-        })
-
-        // 艺人名模糊匹配
-        const matched = unique.filter((s) =>
-          s.artists?.some(
-            (a) =>
-              a.name === decodedName ||
-              a.name.includes(decodedName) ||
-              decodedName.includes(a.name),
-          ),
-        )
-
-        setArtistSongs(matched)
       })
       .catch(console.error)
       .finally(() => setLoading(false))
@@ -112,32 +87,28 @@ export default function ArtistView() {
               {decodedName}
             </h2>
             <p style={{ color: '#8c8c8c', fontSize: 14, margin: '4px 0 0' }}>
-              共 {artistSongs.length} 首歌曲
+              {loading ? '加载中...' : `${songs.length} 首歌曲`}
             </p>
           </div>
         </div>
       </div>
       <div className="panel">
         <DataLoadingGuard loading={loading}>
-          {artistSongs.length > 0 ? (
-            <div className="white-card">
-              <OperatingBarOfSongList songs={artistSongs} />
-              <div style={{ marginTop: 12 }}>
-                <SongList songs={artistSongs} />
-              </div>
-            </div>
-          ) : (
+          {error ? (
             <div
               className="white-card"
-              style={{
-                textAlign: 'center',
-                padding: 40,
-                color: '#8c8c8c',
-              }}
+              style={{ textAlign: 'center', padding: 40, color: '#8c8c8c' }}
             >
-              暂无 {decodedName} 的歌曲数据，尝试搜索获取更多结果
+              {error}
             </div>
-          )}
+          ) : songs.length > 0 ? (
+            <div className="white-card">
+              <OperatingBarOfSongList songs={songs} />
+              <div style={{ marginTop: 12 }}>
+                <SongList songs={songs} />
+              </div>
+            </div>
+          ) : null}
         </DataLoadingGuard>
       </div>
     </div>
