@@ -9,6 +9,7 @@ const providerConfig = {
   migu: { label: '咪咕音乐', color: '#FF6B35' },
   qq: { label: 'QQ音乐', color: '#1DB954' },
   kugou: { label: '酷狗音乐', color: '#2B8FFF' },
+  local: { label: '本地匹配', color: '#722ED1' },
 }
 
 function SearchResult({ result, provider }) {
