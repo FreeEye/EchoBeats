@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, User, Disc } from 'lucide-react'
-import { Button } from 'antd'
+import { Button, Tabs } from 'antd'
 import DataLoadingGuard from '@/components/guards/DataLoadingGuard'
 import SongList from '@/components/SongList'
 import OperatingBarOfSongList from '@/components/OperatingBarOfSongList'
@@ -12,30 +12,71 @@ export default function ArtistView() {
   const decodedName = decodeURIComponent(name || '')
   const [loading, setLoading] = useState(true)
   const [songs, setSongs] = useState([])
+  const [sourceSongs, setSourceSongs] = useState({})
   const [artistPic, setArtistPic] = useState(null)
-  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!decodedName) return
     document.title = `EchoBeats - ${decodedName}`
     setLoading(true)
-    setError(null)
 
+    const encoded = encodeURIComponent(decodedName)
+
+    // 多数据源聚合：songs-of-artist + SS搜索 + Migu搜索 + QQ搜索
     Promise.allSettled([
-      fetch(`/api/songs-of-artist/${encodeURIComponent(decodedName)}`),
+      fetch(`/api/songs-of-artist/${encoded}`),
+      fetch(`/api/ss?keyword=${encoded}`),
+      fetch(`/api/s/m/${encoded}`),
+      fetch(`/api/s/q/${encoded}`),
       fetch('/api/artists'),
     ])
-      .then(async ([songsRes, artistsRes]) => {
-        if (songsRes.status === 'fulfilled' && songsRes.value.ok) {
-          const d = await songsRes.value.json()
-          if (d.songs && Array.isArray(d.songs)) {
-            setSongs(d.songs)
-          } else {
-            setError('暂无该艺人的歌曲数据')
+      .then(async ([artistRes, ssRes, miguRes, qqRes, artistsRes]) => {
+        const allSongs = []
+        const sourceMap = {}
+
+        const addFromSource = (src, data) => {
+          if (Array.isArray(data)) {
+            sourceMap[src] = data
+            allSongs.push(...data)
           }
-        } else {
-          setError('暂无该艺人的歌曲数据')
         }
+
+        if (artistRes.status === 'fulfilled' && artistRes.value.ok) {
+          const d = await artistRes.value.json()
+          if (d.songs) addFromSource('精选歌曲', d.songs)
+        }
+        if (ssRes.status === 'fulfilled' && ssRes.value.ok) {
+          const d = await ssRes.value.json()
+          if (d.success && d.data) addFromSource('综合搜索', d.data)
+        }
+        if (miguRes.status === 'fulfilled' && miguRes.value.ok) {
+          const d = await miguRes.value.json()
+          if (d.success && d.songs) addFromSource('咪咕音乐', d.songs)
+        }
+        if (qqRes.status === 'fulfilled' && qqRes.value.ok) {
+          const d = await qqRes.value.json()
+          if (d.success && d.songs) addFromSource('QQ音乐', d.songs)
+        }
+
+        // 全局去重
+        const seen = new Set()
+        const unique = []
+        for (const s of allSongs) {
+          if (!s.newId || seen.has(s.newId)) continue
+          seen.add(s.newId)
+          unique.push(s)
+        }
+
+        // 各源去重（只保留出现在全局列表中的）
+        Object.keys(sourceMap).forEach((key) => {
+          const validIds = new Set(unique.map((s) => s.newId))
+          const localSeen = new Set()
+          sourceMap[key] = sourceMap[key].filter((s) => {
+            if (!validIds.has(s.newId) || localSeen.has(s.newId)) return false
+            localSeen.add(s.newId)
+            return true
+          })
+        })
 
         if (artistsRes.status === 'fulfilled' && artistsRes.value.ok) {
           const d = await artistsRes.value.json()
@@ -44,10 +85,44 @@ export default function ArtistView() {
             if (found) setArtistPic(found.pic)
           }
         }
+
+        setSongs(unique)
+        setSourceSongs(sourceMap)
       })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [decodedName])
+
+  const sourceTabs = Object.entries(sourceSongs)
+    .filter(([, v]) => v.length > 0)
+    .map(([key, srcSongs]) => ({
+      key,
+      label: `${key} (${srcSongs.length})`,
+      children: (
+        <div className="white-card">
+          <OperatingBarOfSongList songs={srcSongs} />
+          <div style={{ marginTop: 12 }}>
+            <SongList songs={srcSongs} />
+          </div>
+        </div>
+      ),
+    }))
+
+  const tabItems = sourceTabs.length > 1 ? [
+    {
+      key: 'all',
+      label: `全部 (${songs.length})`,
+      children: (
+        <div className="white-card">
+          <OperatingBarOfSongList songs={songs} />
+          <div style={{ marginTop: 12 }}>
+            <SongList songs={songs} />
+          </div>
+        </div>
+      ),
+    },
+    ...sourceTabs,
+  ] : null
 
   return (
     <div>
@@ -57,7 +132,7 @@ export default function ArtistView() {
             返回艺人列表
           </Button>
         </Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20 }}>
           <div
             style={{
               width: 100,
@@ -87,30 +162,35 @@ export default function ArtistView() {
               {decodedName}
             </h2>
             <p style={{ color: '#8c8c8c', fontSize: 14, margin: '4px 0 0' }}>
-              {loading ? '加载中...' : `${songs.length} 首歌曲`}
+              {loading ? '加载中...' : `${songs.length} 首歌曲 · ${Object.keys(sourceSongs).length} 个来源`}
             </p>
           </div>
         </div>
       </div>
-      <div className="panel">
-        <DataLoadingGuard loading={loading}>
-          {error ? (
-            <div
-              className="white-card"
-              style={{ textAlign: 'center', padding: 40, color: '#8c8c8c' }}
-            >
-              {error}
-            </div>
-          ) : songs.length > 0 ? (
+
+      <DataLoadingGuard loading={loading}>
+        {songs.length > 0 ? (
+          tabItems ? (
+            <Tabs
+              defaultActiveKey="all"
+              items={tabItems}
+            />
+          ) : (
             <div className="white-card">
               <OperatingBarOfSongList songs={songs} />
               <div style={{ marginTop: 12 }}>
                 <SongList songs={songs} />
               </div>
             </div>
-          ) : null}
-        </DataLoadingGuard>
-      </div>
+          )
+        ) : (
+          !loading && (
+            <div className="white-card" style={{ textAlign: 'center', padding: 40, color: '#8c8c8c' }}>
+              暂无 {decodedName} 的歌曲数据
+            </div>
+          )
+        )}
+      </DataLoadingGuard>
     </div>
   )
 }

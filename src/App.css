@@ -163,3 +163,8 @@ a {
 a:hover {
   color: #FFA500;
 }
+
+/* MV 卡片播放按钮 hover 效果 */
+.mv-card:hover .mv-play-btn {
+  opacity: 1 !important;
+}

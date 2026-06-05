@@ -16,6 +16,7 @@ const PlaylistView = lazy(() => import('./pages/playlists/PlaylistView'))
 const NewSongs = lazy(() => import('./pages/NewSongs'))
 const Artists = lazy(() => import('./pages/Artists'))
 const ArtistView = lazy(() => import('./pages/ArtistView'))
+const MVPage = lazy(() => import('./pages/MVPage'))
 const { Content } = Layout
 
 function App() {
@@ -57,6 +58,7 @@ function App() {
                   <Route path="new-songs" element={<NewSongs />} />
                   <Route path="artists" element={<Artists />} />
                   <Route path="artist/:name" element={<ArtistView />} />
+                  <Route path="mv" element={<MVPage />} />
                 </Routes>
               </Suspense>
             </Content>

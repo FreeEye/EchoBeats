@@ -6,6 +6,7 @@ const tabs = [
   { key: '/', label: '首页' },
   { key: '/new-songs', label: '新歌' },
   { key: '/artists', label: '艺人' },
+  { key: '/mv', label: 'MV' },
   { key: '/playlists', label: '歌单' },
 ]
 

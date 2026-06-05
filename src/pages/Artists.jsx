@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Users, Search } from 'lucide-react'
 import { Input } from 'antd'
@@ -42,13 +42,15 @@ function ArtistCard({ artist, onClick }) {
           border: '2px solid rgba(255,255,255,0.08)',
         }}
       />
-      <div>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 600, color: '#f0f0f0' }}>
           {artist.name}
         </div>
-        <div style={{ fontSize: 12, color: '#8c8c8c', marginTop: 2 }}>
-          点击查看歌曲
-        </div>
+        {artist.songCount && (
+          <div style={{ fontSize: 12, color: '#8c8c8c', marginTop: 2 }}>
+            {artist.songCount} 首歌曲
+          </div>
+        )}
       </div>
     </div>
   )
@@ -63,22 +65,67 @@ export default function Artists() {
   useEffect(() => {
     document.title = 'EchoBeats - 艺人'
     setLoading(true)
-    fetch('/api/artists')
-      .then((res) => res.json())
-      .then(({ success, artists: data }) => {
-        if (success && Array.isArray(data)) {
-          setArtists(data)
+
+    // 同时获取艺人列表和歌曲数据来构建更完整的艺人信息
+    Promise.allSettled([
+      fetch('/api/artists'),
+      fetch('/api/hot-songs'),
+      fetch('/api/new-songs'),
+      fetch('/api/songs'),
+    ])
+      .then(async ([artistsRes, hotRes, newRes, songsRes]) => {
+        // 从艺人接口获取基础列表
+        let baseArtists = []
+        if (artistsRes.status === 'fulfilled' && artistsRes.value.ok) {
+          const d = await artistsRes.value.json()
+          if (d.success && Array.isArray(d.artists)) {
+            baseArtists = d.artists
+          }
         }
+
+        // 统计每个艺人的歌曲数量
+        const allSongs = []
+        for (const res of [hotRes, newRes, songsRes]) {
+          if (res.status === 'fulfilled' && res.value.ok) {
+            const d = await res.value.json()
+            if (d.success && Array.isArray(d.songs)) {
+              allSongs.push(...d.songs)
+            }
+          }
+        }
+
+        // 统计艺人歌曲数
+        const artistCount = new Map()
+        for (const s of allSongs) {
+          if (s.artists) {
+            for (const a of s.artists) {
+              const count = artistCount.get(a.name) || 0
+              artistCount.set(a.name, count + 1)
+            }
+          }
+        }
+
+        // 给艺人添加歌曲数
+        const enriched = baseArtists.map((a) => ({
+          ...a,
+          songCount: artistCount.get(a.name) || 0,
+        }))
+
+        // 按歌曲数降序排列
+        enriched.sort((a, b) => (b.songCount || 0) - (a.songCount || 0))
+        setArtists(enriched)
       })
-      .catch((err) => console.error(err))
+      .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered = search.trim()
-    ? artists.filter((a) =>
-        a.name.toLowerCase().includes(search.toLowerCase()),
-      )
-    : artists
+  const filtered = useMemo(() => {
+    if (!search.trim()) return artists
+    const kw = search.toLowerCase()
+    return artists.filter((a) =>
+      a.name.toLowerCase().includes(kw),
+    )
+  }, [artists, search])
 
   return (
     <div>
@@ -93,7 +140,7 @@ export default function Artists() {
           艺人
         </h2>
         <p style={{ color: '#8c8c8c', fontSize: 14, margin: 0 }}>
-          浏览你喜爱的歌手
+          共 {artists.length} 位艺人 · 点击查看全部歌曲
         </p>
       </div>
       <div className="panel">
@@ -124,9 +171,7 @@ export default function Artists() {
                 key={artist.name}
                 artist={artist}
                 onClick={() =>
-                  navigate(
-                    `/artist/${encodeURIComponent(artist.name)}`,
-                  )
+                  navigate(`/artist/${encodeURIComponent(artist.name)}`)
                 }
               />
             ))}
@@ -134,11 +179,7 @@ export default function Artists() {
           {filtered.length === 0 && (
             <div
               className="white-card"
-              style={{
-                textAlign: 'center',
-                padding: 40,
-                color: '#8c8c8c',
-              }}
+              style={{ textAlign: 'center', padding: 40, color: '#8c8c8c' }}
             >
               没有找到匹配的艺人
             </div>
