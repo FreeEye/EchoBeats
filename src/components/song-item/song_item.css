@@ -1,6 +1,9 @@
 .song-item {
-  padding: 4px 10px;
+  padding: 8px 10px;
   user-select: none;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+  margin-bottom: 1px;
 }
 
 .song-item:hover {
@@ -11,4 +14,5 @@
 
 .hover-to-show {
   opacity: 0;
+  transition: opacity 0.2s ease;
 }

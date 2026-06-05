@@ -1,10 +1,11 @@
 #player {
   bottom: 0px;
-  /* // padding: 8px 0; */
   width: 100%;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
 
   .ant-slider .ant-slider-handle {
     opacity: 0;
+    transition: opacity 0.2s ease;
   }
 
   .ant-slider:hover {
@@ -14,10 +15,10 @@
   }
 
   #below-progress-slider {
-    /* background: linear-gradient(rgba(128, 128, 128, 0.1) 0%, black 100%); */
-    background: #202020;
+    background: linear-gradient(180deg, #1a1a1a 0%, #202020 100%);
     color: white;
     padding: 8px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   #song-name-in-player {
@@ -30,12 +31,20 @@
     width: 140px;
     color: #bfbfbf;
     text-align: right;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
   }
 
   .central-icon-in-player {
     font-size: 40px;
     margin: 0 12px;
     color: orange;
+    transition: transform 0.15s ease, color 0.2s ease;
+    cursor: pointer;
+  }
+
+  .central-icon-in-player:hover {
+    transform: scale(1.1);
   }
 
   .error-icon-in-player {
@@ -44,5 +53,24 @@
 
   .is-on {
     color: #52c41a;
+  }
+
+  .icon {
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.15s ease;
+  }
+
+  .icon:hover {
+    color: orange;
+    transform: scale(1.1);
+  }
+
+  .unclickable-icon {
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .unclickable-icon:hover {
+    color: orange;
   }
 }

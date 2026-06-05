@@ -11,21 +11,44 @@ function SongWithCover({ song }) {
     : { backgroundColor: generateSongCover(song.newId) }
 
   return (
-    <div className="flex items-center gap-2 min-w-0">
+    <div className="flex items-center gap-2.5 min-w-0">
       <div
-        className="w-10 h-10 rounded flex-shrink-0"
-        style={backgroundStyle}
+        className="w-[42px] h-[42px] rounded-lg flex-shrink-0"
+        style={{
+          ...backgroundStyle,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+        }}
       />
       <div className="flex-1 min-w-0">
-        <div className="truncate">
+        <div
+          className="truncate"
+          style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.3 }}
+        >
           {song.name}
           {song.alias && (
-            <span className="text-[13px] italic ml-1">{song.alias}</span>
+            <span
+              style={{
+                fontSize: 12,
+                fontStyle: 'italic',
+                marginLeft: 6,
+                color: '#8c8c8c',
+              }}
+            >
+              {song.alias}
+            </span>
           )}
         </div>
-        <div className="text-[12px] truncate flex gap-2">
-          {song.artists.map((artist) => (
-            <LinkSearchArtist key={artist.id} artistName={artist.name} />
+        <div
+          className="flex gap-1.5 items-center"
+          style={{ fontSize: 12, lineHeight: 1.3, marginTop: 1 }}
+        >
+          {song.artists?.map((artist, idx) => (
+            <span key={artist.id || idx}>
+              <LinkSearchArtist artistName={artist.name} />
+              {idx < song.artists.length - 1 && (
+                <span style={{ color: '#595959', margin: '0 2px' }}>,</span>
+              )}
+            </span>
           ))}
         </div>
       </div>

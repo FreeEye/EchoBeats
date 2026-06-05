@@ -27,8 +27,6 @@ import usePositionedMessage from '@/hooks/usePositionedMessage'
 import { useListenlistOpenStore } from '@/stores/useListenlistOpenStore'
 import { useListenlistStore } from '@/stores/useListenlistStore'
 import { useSongInPlayerStore } from '@/stores/useSongInPlayerStore'
-import { useSongSourceModal } from '@/contexts/SongSourceModalContext'
-import onlyWhenUserIsSignedIn from '@/utils/only_when_user_is_signed_in'
 import toMinAndSec from '@/utils/toMinAndSec'
 import IconLikeSong from '../IconLikeSong'
 import PauseCircleFilled from '../icons/PauseCircleFilled'
@@ -47,7 +45,6 @@ function Player() {
   )
   const { isListenlistOpen, setIsListenlistOpen } = useListenlistOpenStore()
   const [showMessage, contextHolder] = usePositionedMessage()
-  const { showSongSourceModal } = useSongSourceModal()
   const [paused, setPaused] = useState(true)
   const [playSignal, setPlaySignal] = useState(false)
   const [playerMessage, setPlayerMessage] = useState('')
@@ -87,7 +84,9 @@ function Player() {
   useEffect(() => {
     if (songSource) {
       if (playSignal) {
-        audioRef.current.play()
+        audioRef.current.play().catch(() => {
+          setPaused(true)
+        })
       } else {
         audioRef.current.pause()
       }
@@ -211,9 +210,14 @@ function Player() {
 
   function onDownloadIconClick(e) {
     if (songSource) {
-      onlyWhenUserIsSignedIn(() => {
-        showSongSourceModal(songSource, e.clientX, e.clientY)
-      })(e)
+      const a = document.createElement('a')
+      a.href = songSource
+      a.download = songInPlayer?.name ? `${songInPlayer.name}.mp3` : 'song.mp3'
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
     } else {
       showMessage('info', '请先播放', e)
     }

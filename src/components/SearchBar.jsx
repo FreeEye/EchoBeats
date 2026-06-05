@@ -7,22 +7,23 @@ const { Search } = Input
 function SearchBar() {
   const navigate = useNavigate()
   const { searchKeyword, updateSearchKeyword } = useSearchKeyword()
+
   const onSearch = (inputKeyword) => {
     inputKeyword = inputKeyword.trim()
     if (inputKeyword !== '' && inputKeyword !== searchKeyword) {
       updateSearchKeyword(inputKeyword)
-      navigate(
-        `/search/${window.encodeURIComponent(inputKeyword)}`
-      )
+      navigate(`/search/${encodeURIComponent(inputKeyword)}`)
     }
   }
 
   return (
     <Search
       defaultValue={searchKeyword || ''}
-      // value={searchKeyword || ''}
       onSearch={onSearch}
       enterButton
+      placeholder="搜索歌曲、歌手..."
+      allowClear
+      style={{ width: '100%' }}
     />
   )
 }

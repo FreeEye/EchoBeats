@@ -1,14 +1,14 @@
 {
   "name": "tonzhon-music",
   "version": "0.4.0",
-  "description": "Tonzhon: Just listen to songs, no ads! Download songs, create playlists...",
+  "description": "EchoBeats: Just listen to songs, no ads! Download songs, create playlists...",
   "homepage": "https://tonzhon.whamon.com",
   "keywords": [
-    "铜钟",
-    "铜钟音乐",
-    "tonzhon",
+    "EchoBeats",
+    "echo beats",
     "music",
-    "music-player"
+    "music-player",
+    "online music"
   ],
   "author": "enzeberg",
   "scripts": {

@@ -1,15 +1,16 @@
 import { Link } from 'react-router-dom'
 
 function LinkSearchArtist({ artistName }) {
-  const initialColor = 'white'
   return (
     <Link
       to={`/search/${artistName}`}
-      onMouseEnter={(e) => (e.target.style.color = '#fa8c16')}
-      onMouseLeave={(e) => (e.target.style.color = initialColor)}
       style={{
-        color: initialColor,
+        color: '#bfbfbf',
+        fontSize: 12,
+        transition: 'color 0.2s',
       }}
+      onMouseEnter={(e) => (e.target.style.color = '#FFA500')}
+      onMouseLeave={(e) => (e.target.style.color = '#bfbfbf')}
     >
       {artistName}
     </Link>

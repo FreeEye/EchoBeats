@@ -13,17 +13,15 @@ export default function OperatingBarOfSongList({ songs }) {
   }
 
   return (
-    <>
+    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <Button
-        icon={<Play size={16} />}
+        type="primary"
+        icon={<Play size={15} />}
         onClick={handlePlaySongList}
-        style={{
-          marginRight: '10px',
-        }}
       >
-        播放
+        播放全部
       </Button>
       <AddToListenlist data={songs} />
-    </>
+    </span>
   )
 }

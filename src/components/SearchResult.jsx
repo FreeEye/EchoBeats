@@ -1,17 +1,23 @@
 import React, { useCallback, useMemo } from 'react'
-import { Pagination } from 'antd'
+import { Pagination, Tag } from 'antd'
 import SongList from './SongList'
 import Wrapper from './Wrapper'
 import OperatingBarOfSongList from './OperatingBarOfSongList'
 import { useSearchKeyword, useSearchResults } from '../contexts/SearchContext'
 
+const providerConfig = {
+  local: { label: '搜索结果', color: '#FFA500' },
+}
+
 function SearchResult({ result, provider }) {
   const { searchKeyword: keyword } = useSearchKeyword()
   const { updateSearchResults } = useSearchResults()
-  // 使用 useCallback 优化函数，避免不必要的重新渲染
+
   const onPageChange = useCallback(
     (page) => {
-      fetch(`/api/search?provider=${provider}&keyword=${keyword}&page=${page}`)
+      fetch(
+        `/api/search?provider=${provider}&keyword=${encodeURIComponent(keyword)}&page=${page}`,
+      )
         .then((res) => {
           if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`)
@@ -25,7 +31,7 @@ function SearchResult({ result, provider }) {
           console.error('搜索请求失败:', err)
         })
     },
-    [provider, keyword, updateSearchResults]
+    [provider, keyword, updateSearchResults],
   )
 
   const songs = useMemo(() => result?.data?.songs || [], [result])
@@ -35,18 +41,32 @@ function SearchResult({ result, provider }) {
     return null
   }
 
+  const config = providerConfig[provider] || {
+    label: provider,
+    color: '#8c8c8c',
+  }
+
   return (
     <Wrapper
       provider={provider}
-      operatingBar={<OperatingBarOfSongList songs={songs} />}
-      pagination={
-        <Pagination
-          simple
-          onChange={onPageChange}
-          defaultPageSize={4}
-          total={totalCount}
-          showSizeChanger={false}
-        />
+      operatingBar={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Tag
+            color={config.color}
+            style={{
+              margin: 0,
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 500,
+            }}
+          >
+            {config.label}
+          </Tag>
+          <span style={{ color: '#8c8c8c', fontSize: 13 }}>
+            共 {totalCount} 首
+          </span>
+          <OperatingBarOfSongList songs={songs} />
+        </div>
       }
     >
       <SongList songs={songs} />
