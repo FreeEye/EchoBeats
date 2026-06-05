@@ -1,6 +1,6 @@
 import { Layout, ConfigProvider, theme } from 'antd'
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
 import Player from './components/player/player'
 import ListenlistWindow from '@/components/listenlist-window/ListenlistWindow'
@@ -24,7 +24,7 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <HashRouter>
         <ConfigProvider
           theme={{
             algorithm: theme.darkAlgorithm,
@@ -66,7 +66,7 @@ function App() {
             {isListenlistOpen && <ListenlistWindow />}
           </Layout>
         </ConfigProvider>
-      </BrowserRouter>
+      </HashRouter>
     </ErrorBoundary>
   )
 }

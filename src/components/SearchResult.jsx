@@ -8,6 +8,7 @@ const providerConfig = {
   aggregated: { label: '搜索结果', color: '#FFA500' },
   migu: { label: '咪咕音乐', color: '#FF6B35' },
   qq: { label: 'QQ音乐', color: '#1DB954' },
+  kugou: { label: '酷狗音乐', color: '#2B8FFF' },
 }
 
 function SearchResult({ result, provider }) {

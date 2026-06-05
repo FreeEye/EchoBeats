@@ -26,13 +26,14 @@ export const useSearchResults = () => {
 }
 
 const searchViaAPI = async (keyword) => {
-  // 使用原站搜索 API: /api/ss (聚合搜索) + /api/s/m (咪咕) + /api/s/q (QQ音乐)
+  // 使用原站搜索 API: /api/ss (聚合) + /api/s/m (咪咕) + /api/s/q (QQ) + /api/s/k (酷狗)
   const encoded = encodeURIComponent(keyword)
 
-  const [ssRes, miguRes, qqRes] = await Promise.allSettled([
+  const [ssRes, miguRes, qqRes, kRes] = await Promise.allSettled([
     fetch(`/api/ss?keyword=${encoded}`, { credentials: 'include' }),
     fetch(`/api/s/m/${encoded}`, { credentials: 'include' }),
     fetch(`/api/s/q/${encoded}`, { credentials: 'include' }),
+    fetch(`/api/s/k/${encoded}`, { credentials: 'include' }),
   ])
 
   const results = {}
@@ -62,8 +63,19 @@ const searchViaAPI = async (keyword) => {
   // QQ音乐搜索
   if (qqRes.status === 'fulfilled' && qqRes.value.ok) {
     const json = await qqRes.value.json()
-    if (json.success && Array.isArray(json.songs)) {
+    if (json.success && Array.isArray(json.songs) && json.songs.length > 0) {
       results.qq = {
+        searchSuccess: true,
+        data: { songs: json.songs, totalCount: json.songs.length },
+      }
+    }
+  }
+
+  // 酷狗搜索
+  if (kRes.status === 'fulfilled' && kRes.value.ok) {
+    const json = await kRes.value.json()
+    if (json.success && Array.isArray(json.songs) && json.songs.length > 0) {
+      results.kugou = {
         searchSuccess: true,
         data: { songs: json.songs, totalCount: json.songs.length },
       }

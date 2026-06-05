@@ -28,9 +28,10 @@ export default function ArtistView() {
       fetch(`/api/ss?keyword=${encoded}`),
       fetch(`/api/s/m/${encoded}`),
       fetch(`/api/s/q/${encoded}`),
+      fetch(`/api/s/k/${encoded}`),
       fetch('/api/artists'),
     ])
-      .then(async ([artistRes, ssRes, miguRes, qqRes, artistsRes]) => {
+      .then(async ([artistRes, ssRes, miguRes, qqRes, kRes, artistsRes]) => {
         const allSongs = []
         const sourceMap = {}
 
@@ -56,6 +57,10 @@ export default function ArtistView() {
         if (qqRes.status === 'fulfilled' && qqRes.value.ok) {
           const d = await qqRes.value.json()
           if (d.success && d.songs) addFromSource('QQ音乐', d.songs)
+        }
+        if (kRes.status === 'fulfilled' && kRes.value.ok) {
+          const d = await kRes.value.json()
+          if (d.success && d.songs) addFromSource('酷狗音乐', d.songs)
         }
 
         // 全局去重
