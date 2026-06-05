@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react'
-import { Film, Play } from 'lucide-react'
-import DataLoadingGuard from '@/components/guards/DataLoadingGuard'
-import { useSongInPlayerStore } from '@/stores/useSongInPlayerStore'
-import { useListenlistStore } from '@/stores/useListenlistStore'
-import { generateSongCover } from '@/utils/generateSongCover'
+import { useEffect, useState, Suspense, lazy } from 'react'
+import { Film, Play, X } from 'lucide-react'
+import { Button, Modal, Spin, Tabs } from 'antd'
+import allMVs from '@/data/mvs.json'
 
-function MVCard({ song, onPlay }) {
-  const bgColor = generateSongCover(song.newId)
+const MV_PAGE_SIZE = 24
+
+function MVCard({ mv, onPlay }) {
   return (
     <div
       className="mv-card"
+      onClick={() => onPlay(mv)}
       style={{
         cursor: 'pointer',
         borderRadius: 12,
@@ -17,6 +17,7 @@ function MVCard({ song, onPlay }) {
         background: 'rgba(255,255,255,0.03)',
         border: '1px solid rgba(255,255,255,0.05)',
         transition: 'all 0.25s',
+        position: 'relative',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)'
@@ -28,22 +29,23 @@ function MVCard({ song, onPlay }) {
         e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'
         e.currentTarget.style.boxShadow = 'none'
       }}
-      onClick={() => onPlay(song)}
     >
       <div style={{ position: 'relative', paddingTop: '56.25%', overflow: 'hidden' }}>
-        <div
+        <img
+          src={mv.pic}
+          alt={mv.title}
+          loading="lazy"
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             width: '100%',
             height: '100%',
-            background: song.cover
-              ? `url(${song.cover}) center/cover`
-              : bgColor,
+            objectFit: 'cover',
           }}
         />
         <div
+          className="mv-play-btn"
           style={{
             position: 'absolute',
             top: '50%',
@@ -59,94 +61,135 @@ function MVCard({ song, onPlay }) {
             opacity: 0,
             transition: 'opacity 0.25s',
           }}
-          className="mv-play-btn"
         >
           <Play size={22} color="#fff" style={{ marginLeft: 3 }} />
         </div>
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 6,
+            right: 6,
+            background: 'rgba(0,0,0,0.7)',
+            color: '#fff',
+            fontSize: 11,
+            padding: '2px 6px',
+            borderRadius: 4,
+          }}
+        >
+          {mv.duration}
+        </div>
       </div>
-      <div style={{ padding: '12px' }}>
+      <div style={{ padding: '10px 12px' }}>
         <div
           className="truncate"
-          style={{ fontSize: 14, fontWeight: 600, color: '#f0f0f0', marginBottom: 4 }}
+          style={{ fontSize: 13, fontWeight: 600, color: '#f0f0f0', marginBottom: 3, lineHeight: 1.3 }}
+          title={mv.title}
         >
-          {song.name}
+          {mv.title}
         </div>
-        <div className="truncate" style={{ fontSize: 12, color: '#8c8c8c' }}>
-          {song.artists?.map((a) => a.name).join(' / ')}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="truncate" style={{ fontSize: 12, color: '#8c8c8c', flex: 1 }}>
+            {mv.author || mv.artist}
+          </span>
+          {mv.play > 0 && (
+            <span style={{ fontSize: 11, color: '#595959', flexShrink: 0, marginLeft: 8 }}>
+              {mv.play > 10000 ? `${(mv.play / 10000).toFixed(1)}万` : mv.play}
+            </span>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
+function MVPlayer({ mv, onClose }) {
+  if (!mv) return null
+  // Bilibili 播放器嵌入
+  const embedUrl = `https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0`
+  return (
+    <Modal
+      open={!!mv}
+      onCancel={onClose}
+      footer={null}
+      width={900}
+      centered
+      destroyOnClose
+      styles={{ body: { padding: 0, background: '#000' } }}
+    >
+      <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+        <iframe
+          src={embedUrl}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            border: 'none',
+          }}
+          allow="autoplay; fullscreen"
+          allowFullScreen
+        />
+      </div>
+      <div style={{ padding: '12px 16px', background: '#1a1a1a' }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: '#f0f0f0', marginBottom: 4 }}>{mv.title}</div>
+        <div style={{ fontSize: 12, color: '#8c8c8c' }}>
+          {mv.author} · {mv.duration}
+          {mv.play > 0 && ` · ${mv.play > 10000 ? `${(mv.play / 10000).toFixed(0)}万次播放` : `${mv.play}次播放`}`}
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 export default function MVPage() {
-  const [loading, setLoading] = useState(true)
-  const [mvSongs, setMvSongs] = useState([])
-  const [page, setPage] = useState(1)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const setSongInPlayer = useSongInPlayerStore((s) => s.setSongInPlayer)
+  const [displayCount, setDisplayCount] = useState(MV_PAGE_SIZE)
+  const [playingMV, setPlayingMV] = useState(null)
+  const [activeTab, setActiveTab] = useState('all')
 
   useEffect(() => {
     document.title = 'EchoBeats - MV精选'
-    setLoading(true)
-    // 使用 new-songs 和 hot-songs 作为 MV 数据源
-    Promise.allSettled([
-      fetch('/api/new-songs'),
-      fetch('/api/hot-songs'),
-    ])
-      .then(async ([newRes, hotRes]) => {
-        const all = []
-        if (newRes.status === 'fulfilled' && newRes.value.ok) {
-          const d = await newRes.value.json()
-          if (d.success) all.push(...d.songs)
-        }
-        if (hotRes.status === 'fulfilled' && hotRes.value.ok) {
-          const d = await hotRes.value.json()
-          if (d.success) all.push(...d.songs)
-        }
-        const seen = new Set()
-        setMvSongs(
-          all.filter((s) => {
-            if (seen.has(s.newId)) return false
-            seen.add(s.newId)
-            return true
-          }),
-        )
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false))
   }, [])
 
-  const loadMore = async () => {
-    setLoadingMore(true)
-    const nextPage = page + 1
-    try {
-      const res = await fetch('/api/new-songs')
-      if (res.ok) {
-        const d = await res.json()
-        if (d.success) {
-          const seen = new Set(mvSongs.map((s) => s.newId))
-          const more = d.songs.filter((s) => !seen.has(s.newId))
-          setMvSongs((prev) => [...prev, ...more])
-          setPage(nextPage)
-        }
-      }
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoadingMore(false)
-    }
+  // 提取所有艺人
+  const artists = [...new Set(allMVs.map((m) => m.artist))].sort()
+
+  // 按 Tab 过滤
+  const filtered =
+    activeTab === 'all'
+      ? allMVs
+      : allMVs.filter((m) => m.artist === activeTab)
+
+  const displayed = filtered.slice(0, displayCount)
+  const hasMore = displayCount < filtered.length
+
+  const loadMore = () => {
+    setDisplayCount((prev) => prev + MV_PAGE_SIZE)
   }
 
-  const displaySongs = mvSongs.slice(0, 24)
-
-  const handlePlay = (song) => {
-    setSongInPlayer(song)
-    const store = useListenlistStore.getState()
-    if (!store.listenlist.some((s) => s?.newId === song.newId)) {
-      store.addSongToListenlist(song)
-    }
+  // 切换 Tab 时重置
+  const handleTabChange = (key) => {
+    setActiveTab(key)
+    setDisplayCount(MV_PAGE_SIZE)
   }
+
+  // 生成 Tab items (top artists by count)
+  const artistCounts = {}
+  allMVs.forEach((m) => {
+    artistCounts[m.artist] = (artistCounts[m.artist] || 0) + 1
+  })
+  const topArtists = Object.entries(artistCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 20)
+    .map(([name]) => name)
+
+  const tabItems = [
+    { key: 'all', label: `全部 (${allMVs.length})` },
+    ...topArtists.map((a) => ({
+      key: a,
+      label: `${a} (${artistCounts[a]})`,
+    })),
+  ]
 
   return (
     <div>
@@ -161,34 +204,46 @@ export default function MVPage() {
           MV 精选
         </h2>
         <p style={{ color: '#8c8c8c', fontSize: 14, margin: 0 }}>
-          精选歌曲视听 · {mvSongs.length} 首
+          共 {allMVs.length} 个 MV · {artists.length} 位艺人 · 显示 {displayed.length} 个
         </p>
       </div>
 
       <div className="panel">
-        <DataLoadingGuard loading={loading}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: 14,
-            }}
-          >
-            {displaySongs.map((song) => (
-              <MVCard key={song.newId} song={song} onPlay={handlePlay} />
-            ))}
-          </div>
+        <Tabs
+          activeKey={activeTab}
+          onChange={handleTabChange}
+          items={tabItems}
+          style={{ marginBottom: 8 }}
+        />
 
-          {displaySongs.length === 0 && !loading && (
-            <div
-              className="white-card"
-              style={{ textAlign: 'center', padding: 40, color: '#8c8c8c' }}
-            >
-              暂无 MV 数据
-            </div>
-          )}
-        </DataLoadingGuard>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: 14,
+          }}
+        >
+          {displayed.map((mv) => (
+            <MVCard key={mv.bvid} mv={mv} onPlay={setPlayingMV} />
+          ))}
+        </div>
+
+        {filtered.length === 0 && (
+          <div className="white-card" style={{ textAlign: 'center', padding: 40, color: '#8c8c8c' }}>
+            暂无该艺人的 MV
+          </div>
+        )}
+
+        {hasMore && (
+          <div style={{ textAlign: 'center', padding: '24px 0 8px' }}>
+            <Button onClick={loadMore} type="primary" ghost size="large">
+              加载更多 ({filtered.length - displayCount} 个)
+            </Button>
+          </div>
+        )}
       </div>
+
+      <MVPlayer mv={playingMV} onClose={() => setPlayingMV(null)} />
     </div>
   )
 }

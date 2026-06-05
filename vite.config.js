@@ -17,6 +17,14 @@ export default defineConfig({
         target: 'https://tonzhon.whamon.com/',
         changeOrigin: true,
       },
+      '/bilibili': {
+        target: 'https://api.bilibili.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/bilibili/, ''),
+        headers: {
+          Referer: 'https://www.bilibili.com',
+        },
+      },
     },
   },
   build: {
