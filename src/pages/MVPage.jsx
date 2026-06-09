@@ -118,8 +118,9 @@ function MVCard({ mv, onPlay }) {
 
 function MVPlayer({ mv, onClose }) {
   if (!mv) return null
-  // Bilibili 播放器嵌入
-  const embedUrl = `https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0`
+  // Bilibili 播放器嵌入，添加 high_quality 和 as_wide 参数优化体验
+  const embedUrl = `https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&high_quality=1&as_wide=1&page=1`
+  const bilibiliUrl = `https://www.bilibili.com/video/${mv.bvid}`
   return (
     <Modal
       open={!!mv}
@@ -141,16 +142,30 @@ function MVPlayer({ mv, onClose }) {
             height: '100%',
             border: 'none',
           }}
-          allow="autoplay; fullscreen"
+          allow="autoplay; fullscreen; encrypted-media"
           allowFullScreen
+          referrerPolicy="no-referrer"
         />
       </div>
-      <div style={{ padding: '12px 16px', background: '#1a1a1a' }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: '#f0f0f0', marginBottom: 4 }}>{mv.title}</div>
-        <div style={{ fontSize: 12, color: '#8c8c8c' }}>
-          {mv.author} · {mv.duration}
-          {mv.play > 0 && ` · ${mv.play > 10000 ? `${(mv.play / 10000).toFixed(0)}万次播放` : `${mv.play}次播放`}`}
+      <div style={{ padding: '12px 16px', background: '#1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#f0f0f0', marginBottom: 4 }}>{mv.title}</div>
+          <div style={{ fontSize: 12, color: '#8c8c8c' }}>
+            {mv.author} · {mv.duration}
+            {mv.play > 0 && ` · ${mv.play > 10000 ? `${(mv.play / 10000).toFixed(0)}万次播放` : `${mv.play}次播放`}`}
+          </div>
         </div>
+        <a href={bilibiliUrl} target="_blank" rel="noopener noreferrer"
+          style={{
+            color: '#FFA500', fontSize: 13, textDecoration: 'none', flexShrink: 0, marginLeft: 16,
+            padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,165,0,0.4)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,165,0,0.1)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+        >
+          在B站观看
+        </a>
       </div>
     </Modal>
   )
