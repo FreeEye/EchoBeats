@@ -9,18 +9,26 @@ async function fetchAPI(path) {
   return res.json()
 }
 
-// 获取歌曲播放源 URL（支持 GitHub Pages 降级到上游 API）
+// 获取歌曲播放源 URL（优先静态缓存，其次 API）
 export async function getSongSource(newId) {
-  // 先尝试相对路径（开发/Vercel 代理）
+  // 1. 优先从静态数据中获取预解析的播放 URL（GitHub Pages）
+  if (!isDev) {
+    try {
+      const data = await getStaticData()
+      if (data.songSources?.[newId]) return data.songSources[newId]
+    } catch (_) { /* 静态数据不可用 */ }
+  }
+
+  // 2. 尝试相对路径 API（开发/Vercel 代理）
   try {
     const res = await fetch(`/api/p/${newId}`)
     if (res.ok) {
       const data = await res.json()
       if (data.success) return data.data
     }
-  } catch (_) { /* 相对路径失败，尝试上游 */ }
+  } catch (_) { /* 相对路径失败 */ }
 
-  // 降级到上游 API 直接请求（GitHub Pages 环境）
+  // 3. 降级到上游 API 直接请求
   try {
     const res = await fetch(`${API_BASE}/api/p/${newId}`)
     if (res.ok) {
@@ -117,6 +125,26 @@ export async function getArtists() {
   return []
 }
 
+// 获取指定艺人的歌曲
+export async function getArtistSongs(artistName) {
+  // 先尝试 API（开发/Vercel 代理环境可用）
+  try {
+    const path = `/api/songs-of-artist/${encodeURIComponent(artistName)}`
+    const json = await fetchAPIWithFallback(path)
+    if (json?.songs) return json.songs
+  } catch (_) { /* API 不可用，降级到静态数据 */ }
+
+  // 降级到静态数据（GitHub Pages）
+  if (!isDev) {
+    try {
+      const data = await getStaticData()
+      if (data.artistSongs?.[artistName]) return data.artistSongs[artistName]
+    } catch (_) { /* 静态数据也加载失败 */ }
+  }
+
+  return []
+}
+
 // 获取全部歌曲池（用于搜索和艺人页）
 export async function getSongPool() {
   try {
@@ -141,6 +169,12 @@ export async function getSongPool() {
         ...(data.hotSongs?.songs || []),
         ...(data.newSongs?.songs || []),
       ]
+      // 也加入艺人歌曲数据
+      if (data.artistSongs) {
+        for (const songs of Object.values(data.artistSongs)) {
+          staticAll.push(...songs)
+        }
+      }
       const seen = new Set()
       return staticAll.filter((s) => { if (seen.has(s.newId)) return false; seen.add(s.newId); return true })
     }
@@ -152,6 +186,11 @@ export async function getSongPool() {
         ...(data.hotSongs?.songs || []),
         ...(data.newSongs?.songs || []),
       ]
+      if (data.artistSongs) {
+        for (const songs of Object.values(data.artistSongs)) {
+          all.push(...songs)
+        }
+      }
       const seen = new Set()
       return all.filter((s) => { if (seen.has(s.newId)) return false; seen.add(s.newId); return true })
     }

@@ -6,7 +6,7 @@ import DataLoadingGuard from '@/components/guards/DataLoadingGuard'
 import SongList from '@/components/SongList'
 import OperatingBarOfSongList from '@/components/OperatingBarOfSongList'
 import { generateSongCover } from '@/utils/generateSongCover'
-import { getArtists, getSongPool, fetchAPIWithFallback } from '@/services/dataService'
+import { getArtists, getSongPool, getArtistSongs } from '@/services/dataService'
 
 export default function ArtistView() {
   const { name } = useParams()
@@ -21,34 +21,21 @@ export default function ArtistView() {
     document.title = `EchoBeats - ${decodedName}`
     setLoading(true)
 
-    const encoded = encodeURIComponent(decodedName)
     const sourceMap = {}
 
     const addFromSource = (src, data) => {
       if (Array.isArray(data) && data.length > 0) sourceMap[src] = data
     }
 
-    // 先尝试服务端API（带 GitHub Pages 降级）
+    // 获取艺人歌曲（优先 API，GitHub Pages 降级到静态数据）
     Promise.allSettled([
-      fetchAPIWithFallback(`/api/songs-of-artist/${encoded}`),
-      fetchAPIWithFallback(`/api/ss?keyword=${encoded}`),
-      fetchAPIWithFallback(`/api/s/m/${encoded}`),
-      fetchAPIWithFallback(`/api/s/k/${encoded}`),
+      getArtistSongs(decodedName),
       getArtists(),
       getSongPool(),
     ])
-      .then(async ([artistRes, ssRes, miguRes, kRes, artistsData, poolData]) => {
-        if (artistRes.status === 'fulfilled' && artistRes.value?.songs) {
-          addFromSource('精选歌曲', artistRes.value.songs)
-        }
-        if (ssRes.status === 'fulfilled' && ssRes.value?.success && ssRes.value.data) {
-          addFromSource('综合搜索', ssRes.value.data)
-        }
-        if (miguRes.status === 'fulfilled' && miguRes.value?.success && miguRes.value.songs) {
-          addFromSource('咪咕音乐', miguRes.value.songs)
-        }
-        if (kRes.status === 'fulfilled' && kRes.value?.success && kRes.value.songs) {
-          addFromSource('酷狗音乐', kRes.value.songs)
+      .then(async ([artistSongsRes, artistsData, poolData]) => {
+        if (artistSongsRes.status === 'fulfilled' && artistSongsRes.value.length > 0) {
+          addFromSource('精选歌曲', artistSongsRes.value)
         }
 
         // 服务器无数据时降级到本地歌曲池匹配

@@ -66,6 +66,7 @@ function Player() {
   const isMountedRef = useRef(false)
   const audioRef = useRef(null)
   const intervalRef = useRef(null)
+  const retryRef = useRef(false)
 
   useEffect(() => {
     if (isMountedRef.current) {
@@ -73,6 +74,7 @@ function Player() {
         // audioRef.current.pause();
         setSongSource(null)
         setMediaLoadingStatus('')
+        retryRef.current = false
         // setPlayProgress(0);
         setAudioCurrentTime(0)
         setPlaySignal(true)
@@ -141,9 +143,29 @@ function Player() {
     // document.title = 'Loading media...';
   }
   function onAudioError() {
-    setMediaLoadingStatus('error')
-    setPlayerMessage('Media Load Error')
-    // document.title = 'Media Load Error';
+    // 如果预缓存的音频 URL 过期，尝试从 API 直接获取新 URL（不读缓存）
+    if (!retryRef.current && songInPlayer?.newId) {
+      retryRef.current = true
+      setPlayerMessage('Retrying source...')
+      fetch(`https://tonzhon.whamon.com/api/p/${songInPlayer.newId}`)
+        .then((res) => res.json())
+        .then(({ success, data }) => {
+          if (success && data) {
+            setSongSource(data)
+            setMediaLoadingStatus('')
+            return
+          }
+          throw new Error('Retry failed')
+        })
+        .catch(() => {
+          setMediaLoadingStatus('error')
+          setPlayerMessage('Media Load Error')
+          retryRef.current = false
+        })
+    } else {
+      setMediaLoadingStatus('error')
+      setPlayerMessage('Media Load Error')
+    }
   }
   function onAudioLoadedData() {
     setMediaLoadingStatus('success')
