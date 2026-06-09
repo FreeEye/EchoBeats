@@ -1,11 +1,62 @@
 // 数据服务：优先 API（开发/Vercel），降级静态数据（GitHub Pages）
 
 const isDev = import.meta.env.DEV
+const API_BASE = 'https://tonzhon.whamon.com'
 
 async function fetchAPI(path) {
   const res = await fetch(path, { credentials: 'include' })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
+}
+
+// 获取歌曲播放源 URL（支持 GitHub Pages 降级到上游 API）
+export async function getSongSource(newId) {
+  // 先尝试相对路径（开发/Vercel 代理）
+  try {
+    const res = await fetch(`/api/p/${newId}`)
+    if (res.ok) {
+      const data = await res.json()
+      if (data.success) return data.data
+    }
+  } catch (_) { /* 相对路径失败，尝试上游 */ }
+
+  // 降级到上游 API 直接请求（GitHub Pages 环境）
+  try {
+    const res = await fetch(`${API_BASE}/api/p/${newId}`)
+    if (res.ok) {
+      const data = await res.json()
+      if (data.success) return data.data
+    }
+  } catch (_) { /* 上游也失败 */ }
+
+  throw new Error('Failed to get song source')
+}
+
+// 安全地调用服务端 API，失败时降级到上游直接请求（GitHub Pages 兼容）
+export async function fetchAPIWithFallback(path) {
+  const relativeUrl = path
+  const absoluteUrl = `${API_BASE}${path}`
+
+  // 先尝试相对路径
+  try {
+    const res = await fetch(relativeUrl, { credentials: 'include' })
+    if (res.ok) {
+      const text = await res.text()
+      try {
+        return JSON.parse(text)
+      } catch (_) { /* 返回的是 HTML 不是 JSON（如 GitHub Pages SPA fallback） */ }
+    }
+  } catch (_) { /* 网络错误，尝试上游 */ }
+
+  // 降级到上游
+  try {
+    const res = await fetch(absoluteUrl)
+    if (res.ok) {
+      return res.json()
+    }
+  } catch (_) { /* 上游也失败 */ }
+
+  return null
 }
 
 async function loadStaticData() {
@@ -81,6 +132,17 @@ export async function getSongPool() {
     if (all.length > 0) {
       const seen = new Set()
       return all.filter((s) => { if (seen.has(s.newId)) return false; seen.add(s.newId); return true })
+    }
+    // API 调用全部失败时（如 GitHub Pages 环境），降级到静态数据
+    if (!isDev) {
+      const data = await getStaticData()
+      const staticAll = [
+        ...(data.songs?.songs || []),
+        ...(data.hotSongs?.songs || []),
+        ...(data.newSongs?.songs || []),
+      ]
+      const seen = new Set()
+      return staticAll.filter((s) => { if (seen.has(s.newId)) return false; seen.add(s.newId); return true })
     }
   } catch (e) {
     if (!isDev) {

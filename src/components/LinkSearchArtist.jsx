@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 function LinkSearchArtist({ artistName }) {
   return (
     <Link
-      to={`/search/${artistName}`}
+      to={`/artist/${encodeURIComponent(artistName)}`}
       style={{
         color: '#bfbfbf',
         fontSize: 12,

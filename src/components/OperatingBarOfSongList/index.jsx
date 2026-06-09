@@ -1,15 +1,13 @@
 import { Button } from 'antd'
 import { Play } from 'lucide-react'
 import AddToListenlist from './AddToListenlist'
-import { usePlayIndex, useListenlist } from '../../contexts/MusicContext'
+import playSongs from '@/stores/playSongs'
 
 export default function OperatingBarOfSongList({ songs }) {
-  const { updatePlayIndex } = usePlayIndex()
-  const { setNewListenlist } = useListenlist()
-
   const handlePlaySongList = () => {
-    setNewListenlist(songs)
-    updatePlayIndex(0)
+    if (songs && songs.length > 0) {
+      playSongs(songs)
+    }
   }
 
   return (

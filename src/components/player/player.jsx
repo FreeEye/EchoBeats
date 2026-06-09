@@ -28,6 +28,7 @@ import { useListenlistOpenStore } from '@/stores/useListenlistOpenStore'
 import { useListenlistStore } from '@/stores/useListenlistStore'
 import { useSongInPlayerStore } from '@/stores/useSongInPlayerStore'
 import toMinAndSec from '@/utils/toMinAndSec'
+import { getSongSource } from '@/services/dataService'
 import IconLikeSong from '../IconLikeSong'
 import PauseCircleFilled from '../icons/PauseCircleFilled'
 import PlayCircleFilled from '../icons/PlayCircleFilled'
@@ -95,21 +96,14 @@ function Player() {
         audioRef.current.pause()
         setSourceGettingStatus('getting')
         setPlayerMessage('Getting source...')
-        // document.title = 'Getting source...';
-        fetch(`/api/p/${songInPlayer.newId}`)
-          .then((res) => res.json())
-          .then(({ success, data }) => {
-            if (success) {
-              setSongSource(data)
-              setSourceGettingStatus('success')
-            } else {
-              throw new Error('No source')
-            }
+        getSongSource(songInPlayer.newId)
+          .then((data) => {
+            setSongSource(data)
+            setSourceGettingStatus('success')
           })
-          .catch((err) => {
+          .catch(() => {
             setSourceGettingStatus('failed')
             setPlayerMessage('Failed to get source.')
-            // document.title = 'Failed to get source.';
             message.info(`无法播放 <${songInPlayer.name}>`)
             onAudioEnded()
           })

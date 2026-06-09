@@ -6,7 +6,7 @@ import DataLoadingGuard from '@/components/guards/DataLoadingGuard'
 import SongList from '@/components/SongList'
 import OperatingBarOfSongList from '@/components/OperatingBarOfSongList'
 import { generateSongCover } from '@/utils/generateSongCover'
-import { getArtists, getSongPool, clientSearch } from '@/services/dataService'
+import { getArtists, getSongPool, fetchAPIWithFallback } from '@/services/dataService'
 
 export default function ArtistView() {
   const { name } = useParams()
@@ -28,31 +28,27 @@ export default function ArtistView() {
       if (Array.isArray(data) && data.length > 0) sourceMap[src] = data
     }
 
-    // 先尝试服务端API
+    // 先尝试服务端API（带 GitHub Pages 降级）
     Promise.allSettled([
-      fetch(`/api/songs-of-artist/${encoded}`),
-      fetch(`/api/ss?keyword=${encoded}`),
-      fetch(`/api/s/m/${encoded}`),
-      fetch(`/api/s/k/${encoded}`),
+      fetchAPIWithFallback(`/api/songs-of-artist/${encoded}`),
+      fetchAPIWithFallback(`/api/ss?keyword=${encoded}`),
+      fetchAPIWithFallback(`/api/s/m/${encoded}`),
+      fetchAPIWithFallback(`/api/s/k/${encoded}`),
       getArtists(),
       getSongPool(),
     ])
       .then(async ([artistRes, ssRes, miguRes, kRes, artistsData, poolData]) => {
-        if (artistRes.status === 'fulfilled' && artistRes.value.ok) {
-          const d = await artistRes.value.json()
-          if (d.songs) addFromSource('精选歌曲', d.songs)
+        if (artistRes.status === 'fulfilled' && artistRes.value?.songs) {
+          addFromSource('精选歌曲', artistRes.value.songs)
         }
-        if (ssRes.status === 'fulfilled' && ssRes.value.ok) {
-          const d = await ssRes.value.json()
-          if (d.success && d.data) addFromSource('综合搜索', d.data)
+        if (ssRes.status === 'fulfilled' && ssRes.value?.success && ssRes.value.data) {
+          addFromSource('综合搜索', ssRes.value.data)
         }
-        if (miguRes.status === 'fulfilled' && miguRes.value.ok) {
-          const d = await miguRes.value.json()
-          if (d.success && d.songs) addFromSource('咪咕音乐', d.songs)
+        if (miguRes.status === 'fulfilled' && miguRes.value?.success && miguRes.value.songs) {
+          addFromSource('咪咕音乐', miguRes.value.songs)
         }
-        if (kRes.status === 'fulfilled' && kRes.value.ok) {
-          const d = await kRes.value.json()
-          if (d.success && d.songs) addFromSource('酷狗音乐', d.songs)
+        if (kRes.status === 'fulfilled' && kRes.value?.success && kRes.value.songs) {
+          addFromSource('酷狗音乐', kRes.value.songs)
         }
 
         // 服务器无数据时降级到本地歌曲池匹配

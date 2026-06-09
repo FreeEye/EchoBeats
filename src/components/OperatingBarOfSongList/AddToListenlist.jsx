@@ -1,6 +1,6 @@
 import { notification, Button } from 'antd'
 import { Plus } from 'lucide-react'
-import { useListenlist } from '../../contexts/MusicContext'
+import { useListenlistStore } from '@/stores/useListenlistStore'
 
 notification.config({
   placement: 'bottomRight',
@@ -9,10 +9,15 @@ notification.config({
 })
 
 export default function AddToListenlist({ data }) {
-  const { addSongsToListenlist } = useListenlist()
+  const addListToListenlist = useListenlistStore((s) => s.addListToListenlist)
+  const addSongToListenlist = useListenlistStore((s) => s.addSongToListenlist)
 
   function handleClick() {
-    addSongsToListenlist(data)
+    if (Array.isArray(data)) {
+      addListToListenlist(data)
+    } else {
+      addSongToListenlist(data)
+    }
     notification.open({
       message: '已添加到聆听列表',
     })

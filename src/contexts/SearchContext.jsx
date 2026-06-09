@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
-import { getSongPool, clientSearch } from '@/services/dataService'
+import { getSongPool, clientSearch, fetchAPIWithFallback } from '@/services/dataService'
 
 const SearchContext = createContext()
 
@@ -56,28 +56,19 @@ export const SearchProvider = ({ children }) => {
     const encoded = encodeURIComponent(keyword)
 
     const [ssRes, miguRes, kRes] = await Promise.allSettled([
-      fetch(`/api/ss?keyword=${encoded}`, { credentials: 'include' }),
-      fetch(`/api/s/m/${encoded}`, { credentials: 'include' }),
-      fetch(`/api/s/k/${encoded}`, { credentials: 'include' }),
+      fetchAPIWithFallback(`/api/ss?keyword=${encoded}`),
+      fetchAPIWithFallback(`/api/s/m/${encoded}`),
+      fetchAPIWithFallback(`/api/s/k/${encoded}`),
     ])
 
-    if (ssRes.status === 'fulfilled' && ssRes.value.ok) {
-      const json = await ssRes.value.json()
-      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        results.aggregated = { searchSuccess: true, data: { songs: json.data, totalCount: json.data.length } }
-      }
+    if (ssRes.status === 'fulfilled' && ssRes.value?.success && Array.isArray(ssRes.value.data) && ssRes.value.data.length > 0) {
+      results.aggregated = { searchSuccess: true, data: { songs: ssRes.value.data, totalCount: ssRes.value.data.length } }
     }
-    if (miguRes.status === 'fulfilled' && miguRes.value.ok) {
-      const json = await miguRes.value.json()
-      if (json.success && Array.isArray(json.songs) && json.songs.length > 0) {
-        results.migu = { searchSuccess: true, data: { songs: json.songs, totalCount: json.songs.length } }
-      }
+    if (miguRes.status === 'fulfilled' && miguRes.value?.success && Array.isArray(miguRes.value.songs) && miguRes.value.songs.length > 0) {
+      results.migu = { searchSuccess: true, data: { songs: miguRes.value.songs, totalCount: miguRes.value.songs.length } }
     }
-    if (kRes.status === 'fulfilled' && kRes.value.ok) {
-      const json = await kRes.value.json()
-      if (json.success && Array.isArray(json.songs) && json.songs.length > 0) {
-        results.kugou = { searchSuccess: true, data: { songs: json.songs, totalCount: json.songs.length } }
-      }
+    if (kRes.status === 'fulfilled' && kRes.value?.success && Array.isArray(kRes.value.songs) && kRes.value.songs.length > 0) {
+      results.kugou = { searchSuccess: true, data: { songs: kRes.value.songs, totalCount: kRes.value.songs.length } }
     }
 
     // 服务端无结果时降级到客户端搜索

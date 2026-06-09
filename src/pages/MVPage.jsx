@@ -1,11 +1,14 @@
-import { useEffect, useState, Suspense, lazy } from 'react'
+import { useCallback, useEffect, useState, Suspense, lazy } from 'react'
 import { Film, Play, X } from 'lucide-react'
 import { Button, Modal, Spin, Tabs } from 'antd'
 import allMVs from '@/data/mvs.json'
+import { generateSongCover } from '@/utils/generateSongCover'
 
 const MV_PAGE_SIZE = 24
 
 function MVCard({ mv, onPlay }) {
+  const [imgError, setImgError] = useState(false)
+  const fallbackBg = generateSongCover(mv.bvid || mv.title)
   return (
     <div
       className="mv-card"
@@ -31,19 +34,30 @@ function MVCard({ mv, onPlay }) {
       }}
     >
       <div style={{ position: 'relative', paddingTop: '56.25%', overflow: 'hidden' }}>
-        <img
-          src={mv.pic}
-          alt={mv.title}
-          loading="lazy"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
-        />
+        {imgError ? (
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            background: fallbackBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Film size={36} color="#8c8c8c" />
+          </div>
+        ) : (
+          <img
+            src={mv.pic}
+            alt={mv.title}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={() => setImgError(true)}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        )}
         <div
           className="mv-play-btn"
           style={{
