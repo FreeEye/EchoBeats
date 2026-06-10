@@ -1,0 +1,1 @@
+import{t as e}from"./react-vendor-DdqLSEFq.js";import{t}from"./index-D3YPj9bG.js";var n=e();function r({loading:e,children:r}){return e?(0,n.jsx)(t,{kind:`data`}):r}export{r as t};
