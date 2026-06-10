@@ -199,6 +199,17 @@ export async function getSongPool() {
   return []
 }
 
+// 获取歌词
+export async function fetchLyrics(newId) {
+  try {
+    const json = await fetchAPIWithFallback(`/api/lyrics/${newId}`)
+    if (json?.lyric) return json.lyric
+    if (json?.lyrics) return json.lyrics
+    if (typeof json === 'string') return json
+  } catch (_) { /* API 不可用 */ }
+  return ''
+}
+
 // 搜索（客户端）
 export function clientSearch(songs, keyword) {
   if (!keyword || !songs.length) return []

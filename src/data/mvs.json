@@ -1,515 +1,209 @@
 [
   {
-    "bvid": "BV1p341167XC",
-    "title": "王菲经典歌曲MV合集",
-    "author": "音乐收藏家",
-    "duration": "01:21:17",
-    "play": 193364,
-    "pic": "https://i2.hdslb.com/bfs/archive/c90b452fbfde920b192b6ce5a44230c94a5bae40.jpg",
-    "artist": "王菲"
-  },
-  {
-    "bvid": "BV1JV4y1z71S",
-    "title": "王菲《匆匆那年》官方MV",
-    "author": "MV收藏站",
-    "duration": "3:59",
-    "play": 12094,
-    "pic": "https://i0.hdslb.com/bfs/archive/b85485a26d0e4eb5e90ce73c5ffde9321c34df41.jpg",
-    "artist": "王菲"
-  },
-  {
-    "bvid": "BV1zs411U7g3",
-    "title": "周杰伦《告白气球》官方MV",
-    "author": "杰威尔音乐",
-    "duration": "3:38",
-    "play": 4500000,
-    "pic": "https://i0.hdslb.com/bfs/archive/ac9dff08bcd1daa827e0e6c4ac9e3c2f64f13390.jpg",
-    "artist": "周杰伦"
-  },
-  {
-    "bvid": "BV12x411w7U8",
-    "title": "周杰伦《一路向北》MV",
-    "author": "杰威尔音乐",
-    "duration": "4:56",
-    "play": 3000000,
-    "pic": "https://i2.hdslb.com/bfs/archive/35940e2f3a47e01bae1221fbb9f303e2ccb5b846.jpg",
-    "artist": "周杰伦"
-  },
-  {
-    "bvid": "BV1MW411P7iU",
-    "title": "林俊杰《江南》MV",
-    "author": "海蝶音乐",
-    "duration": "4:27",
-    "play": 3000000,
-    "pic": "https://i2.hdslb.com/bfs/archive/4de254eb28514e454a32459e32acf91e5f6e3d61.jpg",
-    "artist": "林俊杰"
-  },
-  {
-    "bvid": "BV11x411U7Pf",
-    "title": "林俊杰《可惜没如果》MV",
-    "author": "华纳音乐",
-    "duration": "4:57",
-    "play": 3500000,
-    "pic": "https://i2.hdslb.com/bfs/archive/b1a7688f7f05f2b1b7e02b89f07a9a1adbb7a34f.jpg",
-    "artist": "林俊杰"
-  },
-  {
-    "bvid": "BV1hW411P7jp",
-    "title": "林俊杰《不为谁而作的歌》MV",
-    "author": "华纳音乐",
-    "duration": "4:26",
-    "play": 2000000,
-    "pic": "https://i2.hdslb.com/bfs/archive/38cf39ab2aee8ac92fb4c10fbeeba49c34b5e1b7.jpg",
-    "artist": "林俊杰"
-  },
-  {
-    "bvid": "BV1pb411W7b4",
-    "title": "林俊杰《她说》MV",
-    "author": "海蝶音乐",
-    "duration": "5:20",
-    "play": 1800000,
-    "pic": "https://i0.hdslb.com/bfs/archive/08aa12a31f5d3489a5ef2203696a6052945582e6.jpg",
-    "artist": "林俊杰"
-  },
-  {
-    "bvid": "BV1Ws411S7QP",
-    "title": "陈奕迅《好久不见》MV",
-    "author": "环球音乐",
-    "duration": "4:13",
-    "play": 2800000,
-    "pic": "https://i2.hdslb.com/bfs/archive/d1f048dbaa9363bf3d30df59ed105f8fef6fb06a.jpg",
-    "artist": "陈奕迅"
-  },
-  {
-    "bvid": "BV13x411U7rk",
-    "title": "陈奕迅《爱情转移》MV",
-    "author": "环球音乐",
-    "duration": "4:24",
-    "play": 2200000,
-    "pic": "https://i1.hdslb.com/bfs/archive/7be8ccb77dee5492b81e9cb58aee57c53a2e56e5.jpg",
-    "artist": "陈奕迅"
-  },
-  {
-    "bvid": "BV1Fs41127d2",
-    "title": "邓紫棋《泡沫》MV",
-    "author": "蜂鸟音乐",
-    "duration": "4:18",
-    "play": 3500000,
-    "pic": "https://i0.hdslb.com/bfs/archive/288412a3bb5c3525e59b690e9567d4e20c2ebb05.jpg",
-    "artist": "邓紫棋"
-  },
-  {
-    "bvid": "BV1hW411U7Nt",
-    "title": "邓紫棋《倒数》MV",
-    "author": "蜂鸟音乐",
-    "duration": "3:52",
-    "play": 1800000,
-    "pic": "https://i2.hdslb.com/bfs/archive/bf2e4dce891ab1d9b0cb0a9f3d56bf04e747674a.jpg",
-    "artist": "邓紫棋"
-  },
-  {
-    "bvid": "BV1fx411U7NF",
-    "title": "薛之谦《刚刚好》MV",
-    "author": "海蝶音乐",
-    "duration": "4:15",
-    "play": 2200000,
-    "pic": "https://i1.hdslb.com/bfs/archive/e2302f5b0120349c3f41d48f2cc8e5d072ab7f11.jpg",
-    "artist": "薛之谦"
-  },
-  {
-    "bvid": "BV1gx411U7Xr",
-    "title": "许嵩《断桥残雪》MV",
-    "author": "海蝶音乐",
-    "duration": "4:28",
-    "play": 1800000,
-    "pic": "https://i1.hdslb.com/bfs/archive/63bf95ad9a57c04b66b9a48815d1df8e8dccd61a.jpg",
-    "artist": "许嵩"
-  },
-  {
-    "bvid": "BV1ox411U7xh",
-    "title": "许嵩《玫瑰花的葬礼》MV",
-    "author": "海蝶音乐",
-    "duration": "4:02",
-    "play": 1500000,
-    "pic": "https://i2.hdslb.com/bfs/archive/041c49743843d17a654f8a8fa28d939886644383.jpg",
-    "artist": "许嵩"
-  },
-  {
-    "bvid": "BV1Dx411U7Nr",
-    "title": "张杰《天下》MV",
-    "author": "天娱音乐",
-    "duration": "4:20",
-    "play": 1000000,
-    "pic": "https://i2.hdslb.com/bfs/archive/7a7abaefa598119cd07b18597be0b32c16a9e4af.jpg",
-    "artist": "张杰"
-  },
-  {
-    "bvid": "BV1ox411U7h1",
-    "title": "李荣浩《李白》MV",
-    "author": "华纳音乐",
-    "duration": "3:42",
-    "play": 2000000,
-    "pic": "https://i0.hdslb.com/bfs/archive/b2ad1fea3dfde47ef77bfb4e5703e9515dfb1c4a.jpg",
-    "artist": "李荣浩"
-  },
-  {
-    "bvid": "BV1bx411U7t6",
-    "title": "周深《起风了》Live",
-    "author": "梦响强音",
-    "duration": "5:00",
-    "play": 3000000,
-    "pic": "https://i1.hdslb.com/bfs/archive/fd74505fda0e1e9716c96ab1c50aaa22651f3bbd.jpg",
-    "artist": "周深"
-  },
-  {
-    "bvid": "BV1hx411U7dk",
-    "title": "五月天《倔强》MV",
-    "author": "相信音乐",
-    "duration": "4:20",
-    "play": 3000000,
-    "pic": "https://i2.hdslb.com/bfs/archive/60e434a21a42c0f17a766a93e4fd8e5d2761242e.jpg",
-    "artist": "五月天"
-  },
-  {
-    "bvid": "BV1Ax411U7aY",
-    "title": "刘德华《爱你一万年》MV",
-    "author": "华纳音乐",
-    "duration": "4:38",
-    "play": 2500000,
-    "pic": "https://i0.hdslb.com/bfs/archive/a93375f38f43c563a38e0eb37571852692991fc7.jpg",
-    "artist": "刘德华"
-  },
-  {
-    "bvid": "BV1Wx411U7Hp",
-    "title": "刘德华《冰雨》MV",
-    "author": "华纳音乐",
-    "duration": "4:25",
-    "play": 2200000,
-    "pic": "https://i1.hdslb.com/bfs/archive/d21316ce92b09e62ff7f34b631fa263da04838be.jpg",
-    "artist": "刘德华"
-  },
-  {
-    "bvid": "BV1Px411U7NF",
-    "title": "BEYOND《光辉岁月》MV",
-    "author": "滚石唱片",
+    "bvid": "BV1qD4y1U7fs",
+    "title": "【4K60FPS】周杰伦《七里香》封神之作！华语乐坛最美的一首歌",
+    "author": "音乐私藏馆",
     "duration": "4:58",
-    "play": 4000000,
-    "pic": "https://i0.hdslb.com/bfs/archive/6422b1cf9fae88d3f8d06219435bb8e5d2ac2af6.jpg",
-    "artist": "BEYOND"
+    "play": 25904853,
+    "pic": "http://i1.hdslb.com/bfs/archive/e31b53d89a624c49f7f7056a9556f10d21de4c2b.jpg",
+    "artist": "周杰伦"
   },
   {
-    "bvid": "BV1Gx411U73E",
-    "title": "凤凰传奇《最炫民族风》MV",
-    "author": "孔雀廊",
-    "duration": "4:18",
-    "play": 2500000,
-    "pic": "https://i1.hdslb.com/bfs/archive/148547bffb29858a3effde6ef1a4a7e50211e7da.jpg",
-    "artist": "凤凰传奇"
+    "bvid": "BV1d4411N7zD",
+    "title": "【4K修复】周杰伦 - 晴天MV 2160P修复版",
+    "author": "zyl2012_音乐无限",
+    "duration": "5:17",
+    "play": 17098870,
+    "pic": "http://i1.hdslb.com/bfs/archive/6770f3a7d60f21469194251726588cee3b8bdb45.jpg",
+    "artist": "周杰伦"
   },
   {
-    "bvid": "BV1Tx411U7o5",
-    "title": "张碧晨《凉凉》MV",
-    "author": "梦响强音",
-    "duration": "5:35",
-    "play": 3000000,
-    "pic": "https://i1.hdslb.com/bfs/archive/ee21f3eebed11f1dfdf4b527ce6b5e25a0ff1c12.jpg",
-    "artist": "张碧晨"
+    "bvid": "BV1Ki4y1y7HC",
+    "title": "【私藏馆】周杰伦《稻香》超治愈神作！希望疫情早点过去",
+    "author": "音乐私藏馆",
+    "duration": "3:43",
+    "play": 9084335,
+    "pic": "http://i0.hdslb.com/bfs/archive/86f0a7859d770f53225b942743374a8431dd2a41.jpg",
+    "artist": "周杰伦"
   },
   {
-    "bvid": "BV1Wx411U7jL",
-    "title": "胡彦斌《红颜》MV",
-    "author": "海蝶音乐",
-    "duration": "4:52",
-    "play": 1000000,
-    "pic": "https://i1.hdslb.com/bfs/archive/4bb8a6a9fc52f82061c9b6c5e67f3622b8a9c1f3.jpg",
-    "artist": "胡彦斌"
-  },
-  {
-    "bvid": "BV1Gx411U7wt",
-    "title": "赵雷《成都》MV",
-    "author": "赵雷",
-    "duration": "5:28",
-    "play": 2000000,
-    "pic": "https://i2.hdslb.com/bfs/archive/856b5eeb8e84e7eefc97cd3ca95eddf74d8ac62a.jpg",
-    "artist": "赵雷"
-  },
-  {
-    "bvid": "BV1hx411U7hP",
-    "title": "华晨宇《烟火里的尘埃》MV",
-    "author": "天娱音乐",
-    "duration": "4:42",
-    "play": 1800000,
-    "pic": "https://i1.hdslb.com/bfs/archive/3ffd8b7a4895b544672aa7f968e8e70fe3d56ffe.jpg",
-    "artist": "华晨宇"
-  },
-  {
-    "bvid": "BV1bx411U7Mh",
-    "title": "华晨宇《国王与乞丐》MV",
-    "author": "天娱音乐",
-    "duration": "4:08",
-    "play": 1500000,
-    "pic": "https://i0.hdslb.com/bfs/archive/feeb5a0e44dc6b31ffb497a80e9fd25c85b3ecce.jpg",
-    "artist": "华晨宇"
-  },
-  {
-    "bvid": "BV11x411U7HF",
-    "title": "Taylor Swift - Love Story MV",
-    "author": "TaylorSwiftVEVO",
-    "duration": "3:55",
-    "play": 3500000,
-    "pic": "https://i0.hdslb.com/bfs/archive/9ca37a4f16c06de18a83aaf2def033c0a1ca1d30.jpg",
-    "artist": "Taylor Swift"
-  },
-  {
-    "bvid": "BV1rx411U7kK",
-    "title": "Alan Walker - Faded MV",
-    "author": "AlanWalker",
-    "duration": "3:36",
-    "play": 4000000,
-    "pic": "https://i0.hdslb.com/bfs/archive/0ae09a4aa38d16c7edfc08325c7dc73bb0ceeac1.jpg",
-    "artist": "Alan Walker"
-  },
-  {
-    "bvid": "BV1Hx411U7wK",
-    "title": "程响《可能》MV",
-    "author": "酷狗音乐",
-    "duration": "3:42",
-    "play": 1000000,
-    "pic": "https://i0.hdslb.com/bfs/archive/32c5a5cd081652d64c36d9f42eec2e00b7f115d2.jpg",
-    "artist": "程响"
-  },
-  {
-    "bvid": "BV1Mx411U7jV",
-    "title": "程响《四季予你》MV",
-    "author": "酷狗音乐",
+    "bvid": "BV1Ek4y1r7Rg",
+    "title": "【4K修复】周杰伦 - 夜曲 MV 2160P修复版 新专辑《最伟大的作品》即将发行",
+    "author": "zyl2012_音乐无限",
     "duration": "3:52",
-    "play": 800000,
-    "pic": "https://i1.hdslb.com/bfs/archive/4e188968aab160dd1e37f787b2ed99b21cf0ada8.jpg",
-    "artist": "程响"
+    "play": 9864674,
+    "pic": "http://i1.hdslb.com/bfs/archive/276f0b99946cc11ba336b7f46f69611f1c892b15.jpg",
+    "artist": "周杰伦"
   },
   {
-    "bvid": "BV1Xx411U7iF",
-    "title": "告五人《爱人错过》MV",
-    "author": "相信音乐",
-    "duration": "4:38",
-    "play": 1500000,
-    "pic": "https://i2.hdslb.com/bfs/archive/bb35c8568e3ffdbde557e4e25bc44df5c9be9f38.jpg",
-    "artist": "告五人"
+    "bvid": "BV1r7411p7R4",
+    "title": "【4K修复】周杰伦 - 青花瓷MV 2160P修复版 经典中国风",
+    "author": "zyl2012_音乐无限",
+    "duration": "4:02",
+    "play": 10102104,
+    "pic": "http://i0.hdslb.com/bfs/archive/d6d5176730f19c23e03d3304c7bd30041024d5d8.jpg",
+    "artist": "周杰伦"
   },
   {
-    "bvid": "BV1vx411U7nM",
-    "title": "告五人《带你去找夜生活》MV",
-    "author": "相信音乐",
-    "duration": "4:18",
-    "play": 1200000,
-    "pic": "https://i0.hdslb.com/bfs/archive/e7c71c125d8b77880788d23c0e2cb3727d9f629d.jpg",
-    "artist": "告五人"
-  },
-  {
-    "bvid": "BV1kx411U7Bp",
-    "title": "于文文《体面》MV",
-    "author": "华纳音乐",
-    "duration": "4:42",
-    "play": 2500000,
-    "pic": "https://i1.hdslb.com/bfs/archive/07e7b81e70138b39eb612b4e4c236fde0014d291.jpg",
-    "artist": "于文文"
-  },
-  {
-    "bvid": "BV1vx411U7oQ",
-    "title": "张学友《她来听我的演唱会》MV",
-    "author": "环球音乐",
-    "duration": "4:45",
-    "play": 1800000,
-    "pic": "https://i1.hdslb.com/bfs/archive/7e46f0aa93a65c545106e2f925e0ca565616b0ab.jpg",
+    "bvid": "BV1Z7411871i",
+    "title": "【高清修复】张学友 - 吻别 [原版MV]",
+    "author": "时光音乐阁",
+    "duration": "5:10",
+    "play": 324910,
+    "pic": "http://i0.hdslb.com/bfs/archive/002ae3124dc7581e72176e1c1398098691d5427f.jpg",
     "artist": "张学友"
   },
   {
-    "bvid": "BV14x411U74V",
-    "title": "蔡徐坤《情人》MV",
-    "author": "蔡徐坤工作室",
-    "duration": "3:48",
-    "play": 2500000,
-    "pic": "https://i2.hdslb.com/bfs/archive/d3704e7ac6395078bfe214cae11727c3e5ad1943.jpg",
-    "artist": "蔡徐坤"
-  },
-  {
-    "bvid": "BV1LK4y1b7Hh",
-    "title": "华语乐坛经典MV合集 100首",
-    "author": "音乐收藏馆",
-    "duration": "5:30:00",
-    "play": 5000000,
-    "pic": "https://i1.hdslb.com/bfs/archive/2a7d39db3bf80f97aa6e5b4f4b9b73ff3c78241a.jpg",
-    "artist": "合集"
-  },
-  {
-    "bvid": "BV1eK4y1b7jL",
-    "title": "经典老歌MV合集 怀旧金曲",
-    "author": "怀旧音乐频道",
-    "duration": "6:00:00",
-    "play": 3000000,
-    "pic": "https://i2.hdslb.com/bfs/archive/fbb17d5dbd69d57d3ab5a0b3ee14138db8b1acfd.jpg",
-    "artist": "合集"
-  },
-  {
-    "bvid": "BV1tV4y157zS",
-    "title": "周杰伦出道20周年MV全纪录",
-    "author": "杰迷收藏",
-    "duration": "2:30:00",
-    "play": 2000000,
-    "pic": "https://i0.hdslb.com/bfs/archive/0e80dee03d3614e05fd3816c90aa5d0b0ea1e1fe.jpg",
-    "artist": "周杰伦"
-  },
-  {
-    "bvid": "BV16Z4y1k7tH",
-    "title": "2024华语新歌MV大赏",
-    "author": "音乐新势力",
-    "duration": "1:30:00",
-    "play": 500000,
-    "pic": "https://i1.hdslb.com/bfs/archive/3fd41c9304f39cc3bd1bd64315a89ba3ca12052f.jpg",
-    "artist": "合集"
-  },
-  {
-    "bvid": "BV1oN4y1U7kR",
-    "title": "经典粤语歌曲MV合集",
-    "author": "粤语金曲",
-    "duration": "3:00:00",
-    "play": 1500000,
-    "pic": "https://i2.hdslb.com/bfs/archive/e9e2a1efc657108ee0472a25cfbaa211e3f152f4.jpg",
-    "artist": "合集"
-  },
-  {
-    "bvid": "BV1hL4y1G79d",
-    "title": "王菲经典演唱会MV精选",
-    "author": "菲迷收藏",
-    "duration": "2:00:00",
-    "play": 600000,
-    "pic": "https://i1.hdslb.com/bfs/archive/40ca943844cbe090477405c32a54e6d57163696a.jpg",
+    "bvid": "BV12B4y1B7DL",
+    "title": "【王菲-如愿】官方MV版 4K",
+    "author": "小春春酱",
+    "duration": "4:20",
+    "play": 0,
+    "pic": "",
     "artist": "王菲"
   },
   {
-    "bvid": "BV1JM4y1U7Lq",
-    "title": "林俊杰「圣所」演唱会MV全集",
-    "author": "JJ粉丝站",
-    "duration": "2:15:00",
-    "play": 700000,
-    "pic": "https://i0.hdslb.com/bfs/archive/b59c6a7c218dd2ef4bed29bb3f2d79447929df45.jpg",
+    "bvid": "BV1MS4y1j7of",
+    "title": "【4K珍藏】王菲《匆匆那年》",
+    "author": "4K音乐馆",
+    "duration": "3:54",
+    "play": 0,
+    "pic": "",
+    "artist": "王菲"
+  },
+  {
+    "bvid": "BV1Sz411e7XX",
+    "title": "【1080P修复】林俊杰 - 江南 MV",
+    "author": "时光音乐阁",
+    "duration": "4:25",
+    "play": 0,
+    "pic": "",
     "artist": "林俊杰"
   },
   {
-    "bvid": "BV1Ju4y1U7Rw",
-    "title": "陈奕迅Duo演唱会MV全集",
-    "author": "Eason粉丝站",
-    "duration": "2:30:00",
-    "play": 900000,
-    "pic": "https://i2.hdslb.com/bfs/archive/7a5e74d7a69de0af042e18b04727e04b7a110ea7.jpg",
+    "bvid": "BV1hx411c7VX",
+    "title": "陈奕迅《十年》MV",
+    "author": "EasonMusic",
+    "duration": "3:28",
+    "play": 0,
+    "pic": "",
     "artist": "陈奕迅"
   },
   {
-    "bvid": "BV1AL411y7Xd",
-    "title": "许嵩「寻宝游戏」演唱会MV精选",
-    "author": "嵩鼠站",
-    "duration": "1:30:00",
-    "play": 600000,
-    "pic": "https://i2.hdslb.com/bfs/archive/7242e7e97dbc64b5a4cf5eb63a6c2e9e63b40a62.jpg",
-    "artist": "许嵩"
+    "bvid": "BV1is411v7FJ",
+    "title": "G.E.M.邓紫棋《光年之外》MV",
+    "author": "GEM邓紫棋",
+    "duration": "3:56",
+    "play": 0,
+    "pic": "",
+    "artist": "邓紫棋"
   },
   {
-    "bvid": "BV1Pu4y1U7eg",
-    "title": "李荣浩「年少有为」演唱会MV",
-    "author": "李荣浩粉丝站",
-    "duration": "1:40:00",
-    "play": 500000,
-    "pic": "https://i2.hdslb.com/bfs/archive/63c5aa68a4de1471d6e57a21afcaf5c622c345b0.jpg",
-    "artist": "李荣浩"
+    "bvid": "BV19x411F7nC",
+    "title": "G.E.M.邓紫棋《泡沫》MV",
+    "author": "GEM邓紫棋",
+    "duration": "4:08",
+    "play": 0,
+    "pic": "",
+    "artist": "邓紫棋"
   },
   {
-    "bvid": "BV1Hr4y1U7Wg",
-    "title": "华晨宇「火星」演唱会MV合集",
-    "author": "火星站",
-    "duration": "2:00:00",
-    "play": 800000,
-    "pic": "https://i1.hdslb.com/bfs/archive/8a5e05b2a1a9cb2a0f7f175e30ea5b9d2aa25b5f.jpg",
-    "artist": "华晨宇"
+    "bvid": "BV1yx411F79m",
+    "title": "Beyond《海阔天空》MV",
+    "author": "Beyond",
+    "duration": "5:24",
+    "play": 0,
+    "pic": "",
+    "artist": "BEYOND"
   },
   {
-    "bvid": "BV1xv4y1U7Mk",
-    "title": "汪苏泷「大娱乐家」演唱会MV",
-    "author": "汪苏泷粉丝站",
-    "duration": "1:30:00",
-    "play": 500000,
-    "pic": "https://i0.hdslb.com/bfs/archive/03dad27c7a6cb77516e50207c3500276ab5347a3.jpg",
-    "artist": "汪苏泷"
+    "bvid": "BV1Px411F7gj",
+    "title": "Beyond《光辉岁月》MV",
+    "author": "Beyond",
+    "duration": "4:59",
+    "play": 0,
+    "pic": "",
+    "artist": "BEYOND"
   },
   {
-    "bvid": "BV1Jh4y1U7My",
-    "title": "张碧晨「时」演唱会MV精选",
-    "author": "碧晨粉丝站",
-    "duration": "1:20:00",
-    "play": 500000,
-    "pic": "https://i2.hdslb.com/bfs/archive/716feba2ff442f6e5ebd5450349c752202ec5a11.jpg",
-    "artist": "张碧晨"
+    "bvid": "BV1Gx411c7kk",
+    "title": "张学友《吻别》MV",
+    "author": "上华唱片",
+    "duration": "4:42",
+    "play": 0,
+    "pic": "",
+    "artist": "张学友"
   },
   {
-    "bvid": "BV13c41117Mv",
-    "title": "2025最火歌曲MV合集 TOP100",
-    "author": "音乐排行榜",
-    "duration": "5:00:00",
-    "play": 3000000,
-    "pic": "https://i2.hdslb.com/bfs/archive/f3b1c3f48c1786f8e5924bdebbc37ff1d172ba96.jpg",
-    "artist": "合集"
+    "bvid": "BV1Ys411y7Tq",
+    "title": "五月天《突然好想你》MV",
+    "author": "相信音乐",
+    "duration": "4:32",
+    "play": 0,
+    "pic": "",
+    "artist": "五月天"
   },
   {
-    "bvid": "BV1GH4y1Q7Km",
-    "title": "2024抖音热门歌曲MV合集",
-    "author": "抖音音乐",
-    "duration": "3:00:00",
-    "play": 2500000,
-    "pic": "https://i0.hdslb.com/bfs/archive/0c22fb5eece9be70dc06bc30a1d5f6ce1c9fa4fb.jpg",
-    "artist": "合集"
+    "bvid": "BV1zs411y7z3",
+    "title": "五月天《倔强》MV",
+    "author": "相信音乐",
+    "duration": "4:33",
+    "play": 0,
+    "pic": "",
+    "artist": "五月天"
   },
   {
-    "bvid": "BV1D7411m7FN",
-    "title": "中国好声音历届冠军MV合集",
-    "author": "好声音官方",
-    "duration": "2:00:00",
-    "play": 1000000,
-    "pic": "https://i2.hdslb.com/bfs/archive/9925e1b234f45758e98d62135c38afb9a2f2a6f3.jpg",
-    "artist": "合集"
+    "bvid": "BV1rx411m7JH",
+    "title": "赵雷《成都》MV",
+    "author": "赵雷",
+    "duration": "5:10",
+    "play": 0,
+    "pic": "",
+    "artist": "赵雷"
   },
   {
-    "bvid": "BV1q4411m7LN",
-    "title": "我是歌手历届精彩MV合辑",
-    "author": "芒果TV",
-    "duration": "2:30:00",
-    "play": 1500000,
-    "pic": "https://i1.hdslb.com/bfs/archive/2c4f23c779ea08773113e424118ac18fdd82fbb2.jpg",
-    "artist": "合集"
+    "bvid": "BV1sW411y7Z7",
+    "title": "毛不易《消愁》MV",
+    "author": "明日之子",
+    "duration": "3:44",
+    "play": 0,
+    "pic": "",
+    "artist": "毛不易"
   },
   {
-    "bvid": "BV1cJ4m1T7tC",
-    "title": "2026最新MV流行榜",
-    "author": "MV精选",
-    "duration": "2:00:00",
-    "play": 500000,
-    "pic": "https://i2.hdslb.com/bfs/archive/c7c1d54fb5be3750c16e76b77ba1a364f63d6f7a.jpg",
-    "artist": "合集"
+    "bvid": "BV1DW411k7Gs",
+    "title": "周深《大鱼》MV",
+    "author": "大鱼海棠",
+    "duration": "5:13",
+    "play": 0,
+    "pic": "",
+    "artist": "周深"
   },
   {
-    "bvid": "BV1kS4y1S7Xc",
-    "title": "Taylor Swift The Eras Tour MV集",
-    "author": "Swiftie站",
-    "duration": "3:00:00",
-    "play": 1000000,
-    "pic": "https://i0.hdslb.com/bfs/archive/aaa34ecca783d5d389388a7a9f5d95d1f6869ecc.jpg",
+    "bvid": "BV1Px411F7eR",
+    "title": "凤凰传奇《最炫民族风》MV",
+    "author": "孔雀廊",
+    "duration": "4:05",
+    "play": 0,
+    "pic": "",
+    "artist": "凤凰传奇"
+  },
+  {
+    "bvid": "BV1rx411F7nD",
+    "title": "Taylor Swift - Love Story",
+    "author": "TaylorSwiftVEVO",
+    "duration": "3:55",
+    "play": 0,
+    "pic": "",
     "artist": "Taylor Swift"
   },
   {
-    "bvid": "BV14D4y1u7dT",
-    "title": "Alan Walker电音MV合集",
-    "author": "电音迷",
-    "duration": "1:30:00",
-    "play": 800000,
-    "pic": "https://i2.hdslb.com/bfs/archive/4dddeb0fa0b3e81aea877560a3de36e1eb65e6aa.jpg",
-    "artist": "Alan Walker"
+    "bvid": "BV1sx411F7pW",
+    "title": "Taylor Swift - Blank Space",
+    "author": "TaylorSwiftVEVO",
+    "duration": "4:33",
+    "play": 0,
+    "pic": "",
+    "artist": "Taylor Swift"
   }
 ]

@@ -1,7 +1,10 @@
 import LinkSearchArtist from './LinkSearchArtist'
 import { generateSongCover } from '@/utils/generateSongCover'
+import { useLyricsStore } from '@/stores/useLyricsStore'
 
 function SongWithCover({ song }) {
+  const openLyrics = useLyricsStore((s) => s.open)
+
   const backgroundStyle = song.cover
     ? {
         backgroundImage: `url(${song.cover})`,
@@ -10,6 +13,10 @@ function SongWithCover({ song }) {
       }
     : { backgroundColor: generateSongCover(song.newId) }
 
+  const handleOpenLyrics = () => {
+    if (song?.newId) openLyrics(song)
+  }
+
   return (
     <div className="flex items-center gap-2.5 min-w-0">
       <div
@@ -17,12 +24,17 @@ function SongWithCover({ song }) {
         style={{
           ...backgroundStyle,
           boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          cursor: 'pointer',
         }}
+        onClick={handleOpenLyrics}
+        title="查看歌词"
       />
       <div className="flex-1 min-w-0">
         <div
           className="truncate"
-          style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.3 }}
+          style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.3, cursor: 'pointer' }}
+          onClick={handleOpenLyrics}
+          title="查看歌词"
         >
           {song.name}
           {song.alias && (

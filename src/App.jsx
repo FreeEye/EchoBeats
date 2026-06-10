@@ -4,6 +4,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
 import Player from './components/player/player'
 import ListenlistWindow from '@/components/listenlist-window/ListenlistWindow'
+import LyricsPanel from '@/components/lyrics/LyricsPanel'
 import ErrorBoundary from './components/ErrorBoundary'
 import Loading from '@/components/ui/loading'
 import { useListenlistOpenStore } from '@/stores/useListenlistOpenStore'
@@ -17,6 +18,7 @@ const NewSongs = lazy(() => import('./pages/NewSongs'))
 const Artists = lazy(() => import('./pages/Artists'))
 const ArtistView = lazy(() => import('./pages/ArtistView'))
 const MVPage = lazy(() => import('./pages/MVPage'))
+const Favorites = lazy(() => import('./pages/Favorites'))
 const { Content } = Layout
 
 function App() {
@@ -59,11 +61,13 @@ function App() {
                   <Route path="artists" element={<Artists />} />
                   <Route path="artist/:name" element={<ArtistView />} />
                   <Route path="mv" element={<MVPage />} />
+                  <Route path="favorites" element={<Favorites />} />
                 </Routes>
               </Suspense>
             </Content>
             <Player />
             {isListenlistOpen && <ListenlistWindow />}
+            <LyricsPanel />
           </Layout>
         </ConfigProvider>
       </HashRouter>

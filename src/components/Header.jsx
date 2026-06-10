@@ -8,6 +8,7 @@ const tabs = [
   { key: '/artists', label: '艺人' },
   { key: '/mv', label: 'MV' },
   { key: '/playlists', label: '歌单' },
+  { key: '/favorites', label: '收藏' },
 ]
 
 export default function Header() {
