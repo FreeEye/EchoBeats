@@ -1,5 +1,6 @@
 // 通过 Bilibili 搜索采集真实 MV 数据
-import { writeFileSync, mkdirSync, readFileSync } from 'node:fs'
+// 策略：先验证已知 BV（seed），再搜索新 MV，所有 BV 必须通过 Bilibili API 验证
+import { writeFileSync, mkdirSync } from 'node:fs'
 
 const OUT = 'src/data'
 const BILIBILI_SEARCH = 'https://search.bilibili.com/all'
@@ -7,7 +8,29 @@ const BILIBILI_API = 'https://api.bilibili.com/x/web-interface/view'
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
-// 要搜索的歌曲列表
+// 已验证过的 BV 号（之前抓取时通过 Bilibili API 验证）
+const SEED_BVS = [
+  // 周杰伦 (已验证)
+  { bvid: "BV1qD4y1U7fs", artist: "周杰伦", expectedTitle: "七里香" },
+  { bvid: "BV1d4411N7zD", artist: "周杰伦", expectedTitle: "晴天" },
+  { bvid: "BV1Ki4y1y7HC", artist: "周杰伦", expectedTitle: "稻香" },
+  { bvid: "BV1Ek4y1r7Rg", artist: "周杰伦", expectedTitle: "夜曲" },
+  { bvid: "BV1r7411p7R4", artist: "周杰伦", expectedTitle: "青花瓷" },
+  { bvid: "BV1mL411E7Fb", artist: "周杰伦", expectedTitle: "告白气球" },
+  { bvid: "BV1kt411A7mK", artist: "周杰伦", expectedTitle: "简单爱" },
+  { bvid: "BV11p4y1b7ej", artist: "周杰伦", expectedTitle: "一路向北" },
+  // 王菲 (已验证)
+  { bvid: "BV1MS4y1j7of", artist: "王菲", expectedTitle: "匆匆那年" },
+  { bvid: "BV1zV411v7UL", artist: "王菲", expectedTitle: "红豆" },
+  { bvid: "BV1i5E4zYEPx", artist: "王菲", expectedTitle: "传奇" },
+  { bvid: "BV12B4y1B7DL", artist: "王菲", expectedTitle: "如愿" },
+  // 林俊杰 (已验证)
+  { bvid: "BV1Sz411e7XX", artist: "林俊杰", expectedTitle: "江南" },
+  // 张学友 (已验证)
+  { bvid: "BV1Z7411871i", artist: "张学友", expectedTitle: "吻别" },
+]
+
+// 要搜索的新歌曲列表（尚未找到 MV 的）
 const SONGS = [
   ["周杰伦", "七里香"], ["周杰伦", "晴天"], ["周杰伦", "稻香"], ["周杰伦", "夜曲"],
   ["周杰伦", "青花瓷"], ["周杰伦", "告白气球"], ["周杰伦", "简单爱"], ["周杰伦", "一路向北"],
@@ -72,7 +95,7 @@ async function fetchJSON(url) {
 function extractBVs(html) {
   const bvRegex = /BV[a-zA-Z0-9]{10}/g
   const matches = [...new Set(html.match(bvRegex) || [])]
-  return matches.slice(0, 5) // 前 5 个候选
+  return matches.slice(0, 5)
 }
 
 async function verifyBV(bvid, expectedArtist, expectedTitle) {
@@ -86,10 +109,8 @@ async function verifyBV(bvid, expectedArtist, expectedTitle) {
     const artistLower = expectedArtist.toLowerCase()
     const titleLower = expectedTitle.toLowerCase()
 
-    // 标题必须包含歌曲名，作者或标题包含艺人名
-    const hasSong = titleLower.includes(titleLower) || titleLower === titleLower
-    // 更宽松的匹配：标题包含歌曲名，且作者/标题包含艺人名的一部分
-    const songInTitle = title.toLowerCase().includes(expectedTitle.toLowerCase())
+    // 标题包含歌曲名，且作者/标题包含艺人名
+    const songInTitle = title.toLowerCase().includes(titleLower)
     const artistInContext = (owner + title).toLowerCase().includes(artistLower) ||
       artistLower.split('').filter(c => (owner + title).toLowerCase().includes(c)).length >= artistLower.length * 0.5
 
@@ -102,7 +123,7 @@ async function verifyBV(bvid, expectedArtist, expectedTitle) {
         author: owner,
         duration: `${mins}:${secs.toString().padStart(2, '0')}`,
         play: vid.stat?.view || 0,
-        pic: vid.pic || '',
+        pic: (vid.pic || '').replace(/^http:/, 'https:'),
         artist: expectedArtist
       }
     }
@@ -112,107 +133,79 @@ async function verifyBV(bvid, expectedArtist, expectedTitle) {
   }
 }
 
-// 备用静态数据（已知有效的 MV BV 号，手动验证）
-const FALLBACK_MVS = [
-  // 周杰伦
-  {"bvid":"BV1qD4y1U7fs","title":"【4K60FPS】周杰伦《七里香》封神之作！","author":"音乐私藏馆","duration":"4:58","play":0,"pic":"","artist":"周杰伦"},
-  {"bvid":"BV1d4411N7zD","title":"【4K修复】周杰伦 - 晴天MV","author":"zyl2012_音乐无限","duration":"5:17","play":0,"pic":"","artist":"周杰伦"},
-  {"bvid":"BV1r7411p7R4","title":"【4K修复】周杰伦 - 青花瓷MV","author":"zyl2012_音乐无限","duration":"4:02","play":0,"pic":"","artist":"周杰伦"},
-  // 王菲
-  {"bvid":"BV12B4y1B7DL","title":"【王菲-如愿】官方MV版 4K","author":"小春春酱","duration":"4:20","play":0,"pic":"","artist":"王菲"},
-  {"bvid":"BV1MS4y1j7of","title":"【4K珍藏】王菲《匆匆那年》","author":"4K音乐馆","duration":"3:54","play":0,"pic":"","artist":"王菲"},
-  // 林俊杰
-  {"bvid":"BV1Sz411e7XX","title":"【1080P修复】林俊杰 - 江南 MV","author":"时光音乐阁","duration":"4:25","play":0,"pic":"","artist":"林俊杰"},
-  // 陈奕迅
-  {"bvid":"BV1hx411c7VX","title":"陈奕迅《十年》MV","author":"EasonMusic","duration":"3:28","play":0,"pic":"","artist":"陈奕迅"},
-  // 邓紫棋
-  {"bvid":"BV1is411v7FJ","title":"G.E.M.邓紫棋《光年之外》MV","author":"GEM邓紫棋","duration":"3:56","play":0,"pic":"","artist":"邓紫棋"},
-  {"bvid":"BV19x411F7nC","title":"G.E.M.邓紫棋《泡沫》MV","author":"GEM邓紫棋","duration":"4:08","play":0,"pic":"","artist":"邓紫棋"},
-  // BEYOND
-  {"bvid":"BV1yx411F79m","title":"Beyond《海阔天空》MV","author":"Beyond","duration":"5:24","play":0,"pic":"","artist":"BEYOND"},
-  {"bvid":"BV1Px411F7gj","title":"Beyond《光辉岁月》MV","author":"Beyond","duration":"4:59","play":0,"pic":"","artist":"BEYOND"},
-  // 张学友
-  {"bvid":"BV1Gx411c7kk","title":"张学友《吻别》MV","author":"上华唱片","duration":"4:42","play":0,"pic":"","artist":"张学友"},
-  // 五月天
-  {"bvid":"BV1Ys411y7Tq","title":"五月天《突然好想你》MV","author":"相信音乐","duration":"4:32","play":0,"pic":"","artist":"五月天"},
-  {"bvid":"BV1zs411y7z3","title":"五月天《倔强》MV","author":"相信音乐","duration":"4:33","play":0,"pic":"","artist":"五月天"},
-  // 赵雷
-  {"bvid":"BV1rx411m7JH","title":"赵雷《成都》MV","author":"赵雷","duration":"5:10","play":0,"pic":"","artist":"赵雷"},
-  // 毛不易
-  {"bvid":"BV1sW411y7Z7","title":"毛不易《消愁》MV","author":"明日之子","duration":"3:44","play":0,"pic":"","artist":"毛不易"},
-  // 周深
-  {"bvid":"BV1DW411k7Gs","title":"周深《大鱼》MV","author":"大鱼海棠","duration":"5:13","play":0,"pic":"","artist":"周深"},
-  // 凤凰传奇
-  {"bvid":"BV1Px411F7eR","title":"凤凰传奇《最炫民族风》MV","author":"孔雀廊","duration":"4:05","play":0,"pic":"","artist":"凤凰传奇"},
-  // Taylor Swift
-  {"bvid":"BV1rx411F7nD","title":"Taylor Swift - Love Story","author":"TaylorSwiftVEVO","duration":"3:55","play":0,"pic":"","artist":"Taylor Swift"},
-  {"bvid":"BV1sx411F7pW","title":"Taylor Swift - Blank Space","author":"TaylorSwiftVEVO","duration":"4:33","play":0,"pic":"","artist":"Taylor Swift"},
-]
-
 async function main() {
   mkdirSync(OUT, { recursive: true })
 
   const found = []
-  let totalSearched = 0
+  const foundBvids = new Set()
+
+  // 第 1 步：先验证所有已知 seed BV（获取最新数据包括封面图）
+  console.log('Step 1: Verifying seed BVs...')
+  for (const seed of SEED_BVS) {
+    try {
+      const mv = await verifyBV(seed.bvid, seed.artist, seed.expectedTitle)
+      if (mv) {
+        found.push(mv)
+        foundBvids.add(mv.bvid)
+        console.log(`  OK: ${seed.bvid} | ${seed.artist} - ${seed.expectedTitle}`)
+      } else {
+        console.log(`  STALE: ${seed.bvid} | ${seed.artist} - ${seed.expectedTitle} (no longer valid)`)
+      }
+      await new Promise(r => setTimeout(r, 300))
+    } catch (e) {
+      console.log(`  ERR: ${seed.bvid} - ${e.message}`)
+    }
+  }
+  console.log(`  Seed verified: ${found.length}/${SEED_BVS.length}`)
+
+  // 第 2 步：搜索新 MV（跳过已有 seed 的艺人+歌曲组合）
+  const existingPairs = new Set(SEED_BVS.map(s => `${s.artist}:${s.expectedTitle}`))
+  const toSearch = SONGS.filter(([a, t]) => !existingPairs.has(`${a}:${t}`))
+
+  console.log(`\nStep 2: Searching for ${toSearch.length} new MVs...`)
   let totalFound = 0
 
-  // 批量搜索（每次 1 个以避免被限速）
-  for (const [artist, title] of SONGS) {
-    totalSearched++
+  for (let i = 0; i < toSearch.length; i++) {
+    const [artist, title] = toSearch[i]
     const keyword = encodeURIComponent(`${artist} ${title} MV`)
     const searchUrl = `${BILIBILI_SEARCH}?keyword=${keyword}`
 
     try {
-      console.log(`  [${totalSearched}/${SONGS.length}] Searching: ${artist} - ${title}`)
+      console.log(`  [${i + 1}/${toSearch.length}] Searching: ${artist} - ${title}`)
       const html = await fetchHTML(searchUrl)
-      const bvs = extractBVs(html)
+      const bvs = extractBVs(html).filter(bv => !foundBvids.has(bv))
 
       if (bvs.length === 0) {
-        console.log(`    -> No BVs found in search results`)
+        console.log(`    -> No BVs in search results`)
         continue
       }
 
-      // 验证每个候选 BV
       for (const bvid of bvs) {
         const mv = await verifyBV(bvid, artist, title)
         if (mv) {
           found.push(mv)
+          foundBvids.add(mv.bvid)
           totalFound++
-          console.log(`    -> FOUND: ${bvid} (${mv.title.substring(0, 50)})`)
+          console.log(`    -> FOUND: ${bvid} (${mv.title.substring(0, 60)})`)
           break
         }
-        // 小延迟避免被限速
         await new Promise(r => setTimeout(r, 200))
-      }
-
-      if (!found.length || found[found.length - 1]?.artist !== artist) {
-        console.log(`    -> No matching MV found`)
       }
     } catch (e) {
       console.log(`    -> Error: ${e.message}`)
     }
 
-    // 搜索之间延迟
     await new Promise(r => setTimeout(r, 500))
   }
 
-  console.log(`\nFound ${totalFound}/${totalSearched} MVs`)
-
-  // 使用备用数据补充未找到的 MV（按 bvid 去重）
-  const foundBvids = new Set(found.map(m => m.bvid))
-  const newFallback = FALLBACK_MVS.filter(m => !foundBvids.has(m.bvid))
-  if (newFallback.length > 0) {
-    console.log(`Supplementing with ${newFallback.length} fallback MVs...`)
-    found.push(...newFallback)
-  }
+  console.log(`\n  New MVs found: ${totalFound}`)
+  console.log(`  Total MVs (seed + new): ${found.length}`)
 
   writeFileSync(`${OUT}/mvs.json`, JSON.stringify(found, null, 2))
-  console.log(`Saved ${found.length} MVs to ${OUT}/mvs.json`)
+  console.log(`\nSaved ${found.length} MVs to ${OUT}/mvs.json`)
 }
 
 main().catch(e => {
   console.error('MV fetch failed:', e.message)
-  // 写入备用数据
-  writeFileSync(`${OUT}/mvs.json`, JSON.stringify(FALLBACK_MVS, null, 2))
-  console.log(`Saved ${FALLBACK_MVS.length} fallback MVs`)
+  process.exit(1)
 })

@@ -9,8 +9,8 @@ export default function LyricsPanel() {
   const panelRef = useRef(null)
 
   useEffect(() => {
-    if (isOpen && song?.newId) {
-      fetchLyrics(song.newId).then((text) => {
+    if (isOpen && song) {
+      fetchLyrics(song).then((text) => {
         setLyrics(text || '暂无歌词')
       }).catch(() => {
         setLyrics('暂无歌词')

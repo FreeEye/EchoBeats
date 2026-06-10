@@ -199,14 +199,33 @@ export async function getSongPool() {
   return []
 }
 
-// 获取歌词
-export async function fetchLyrics(newId) {
+// 获取歌词（通过 LRCLIB API）
+export async function fetchLyrics(song) {
+  const artistName = song.artists?.[0]?.name || ''
+  const trackName = song.name || ''
+  if (!artistName || !trackName) return ''
+
   try {
-    const json = await fetchAPIWithFallback(`/api/lyrics/${newId}`)
-    if (json?.lyric) return json.lyric
-    if (json?.lyrics) return json.lyrics
-    if (typeof json === 'string') return json
-  } catch (_) { /* API 不可用 */ }
+    const url = `https://lrclib.net/api/search?artist_name=${encodeURIComponent(artistName)}&track_name=${encodeURIComponent(trackName)}`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const results = await res.json()
+    if (results?.length > 0) {
+      return results[0].plainLyrics || results[0].syncedLyrics || ''
+    }
+  } catch (_) {
+    // 降级：尝试用艺人和歌名重新搜索
+    try {
+      const q = encodeURIComponent(`${artistName} ${trackName}`)
+      const res = await fetch(`https://lrclib.net/api/search?q=${q}`)
+      if (res.ok) {
+        const results = await res.json()
+        if (results?.length > 0) {
+          return results[0].plainLyrics || results[0].syncedLyrics || ''
+        }
+      }
+    } catch (_2) { /* 降级也失败 */ }
+  }
   return ''
 }
 

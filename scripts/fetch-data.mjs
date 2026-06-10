@@ -55,13 +55,31 @@ async function main() {
   console.log('Fetching artist songs...')
   const artistSongsMap = {}
   const artistList = artistsData.artists || []
-  const artistResults = await batchFetch(artistList, async (artist) => {
-    const encoded = encodeURIComponent(artist.name)
+
+  // 额外查询的艺人（不在 /api/artists 列表但平台有歌曲数据）
+  const EXTRA_ARTISTS = [
+    "周杰伦", "谭咏麟", "张国荣", "张学友", "梅艳芳",
+    "罗大佑", "李宗盛", "孙燕姿", "蔡依林", "王力宏",
+    "陶喆", "张惠妹", "林忆莲", "伍佰", "刘若英", "梁静茹"
+  ]
+
+  // 合并并去重
+  const extraNames = new Set(EXTRA_ARTISTS)
+  for (const a of artistList) {
+    extraNames.delete(a.name)
+  }
+  const allArtistNames = [
+    ...artistList.map(a => a.name),
+    ...extraNames
+  ]
+  console.log(`  Querying ${allArtistNames.length} artists (${artistList.length} from API + ${extraNames.size} extra)`)
+  const artistResults = await batchFetch(allArtistNames, async (name) => {
+    const encoded = encodeURIComponent(name)
     const data = await fetchJSON(`/api/songs-of-artist/${encoded}`)
     if (data.songs && data.songs.length > 0) {
-      return { name: artist.name, songs: data.songs }
+      return { name, songs: data.songs }
     }
-    return { name: artist.name, songs: [] }
+    return { name, songs: [] }
   })
 
   let artistTotalSongs = 0
@@ -101,6 +119,14 @@ async function main() {
   }
 
   console.log(`Audio sources: ${resolvedCount}/${allSongs.length} resolved`)
+
+  // 将额外艺人加入 artist list
+  for (const name of extraNames) {
+    const songs = artistSongsMap[name]
+    if (songs && songs.length > 0) {
+      artistsData.artists.push({ name, id: 0, cover: '', count: songs.length })
+    }
+  }
 
   // 4. 保存数据
   const data = {

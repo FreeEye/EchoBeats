@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState, Suspense, lazy } from 'react'
-import { Film, Play, X } from 'lucide-react'
-import { Button, Modal, Spin, Tabs } from 'antd'
+import { useCallback, useEffect, useState, useRef } from 'react'
+import { Film, Play, X, Minimize2, Maximize2, ExternalLink } from 'lucide-react'
+import { Button, Tabs } from 'antd'
 import allMVs from '@/data/mvs.json'
 import { generateSongCover } from '@/utils/generateSongCover'
 
@@ -34,7 +34,7 @@ function MVCard({ mv, onPlay }) {
       }}
     >
       <div style={{ position: 'relative', paddingTop: '56.25%', overflow: 'hidden' }}>
-        {imgError ? (
+        {imgError || !mv.pic ? (
           <div style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
             background: fallbackBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -43,7 +43,7 @@ function MVCard({ mv, onPlay }) {
           </div>
         ) : (
           <img
-            src={mv.pic}
+            src={mv.pic.replace(/^http:/, 'https:')}
             alt={mv.title}
             loading="lazy"
             referrerPolicy="no-referrer"
@@ -116,65 +116,137 @@ function MVCard({ mv, onPlay }) {
   )
 }
 
-function MVPlayer({ mv, onClose }) {
+// 内嵌 MV 播放器（支持后台播放）
+function MVPlayer({ mv, onClose, onMinimize }) {
   if (!mv) return null
-  // Bilibili 播放器嵌入，添加 high_quality 和 as_wide 参数优化体验
-  const embedUrl = `https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&high_quality=1&as_wide=1&page=1`
   const bilibiliUrl = `https://www.bilibili.com/video/${mv.bvid}`
   return (
-    <Modal
-      open={!!mv}
-      onCancel={onClose}
-      footer={null}
-      width={900}
-      centered
-      destroyOnClose
-      styles={{ body: { padding: 0, background: '#000' } }}
-    >
+    <div style={{
+      background: '#0a0a0a',
+      borderRadius: 12,
+      overflow: 'hidden',
+      border: '1px solid rgba(255,255,255,0.08)',
+      marginBottom: 20,
+    }}>
+      {/* 顶部栏 */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '10px 16px', background: '#111',
+      }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {mv.title}
+          </div>
+          <div style={{ fontSize: 12, color: '#8c8c8c', marginTop: 2 }}>
+            {mv.author || mv.artist} · {mv.duration}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0, marginLeft: 12 }}>
+          <a href={bilibiliUrl} target="_blank" rel="noopener noreferrer"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4, color: '#FFA500', fontSize: 12,
+              textDecoration: 'none', padding: '4px 10px', borderRadius: 6,
+              border: '1px solid rgba(255,165,0,0.3)', transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,165,0,0.1)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <ExternalLink size={13} /> B站观看
+          </a>
+          <button
+            onClick={onMinimize}
+            title="最小化（继续后台播放）"
+            style={{
+              background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
+              color: '#8c8c8c', cursor: 'pointer', padding: '4px 8px', display: 'flex',
+              alignItems: 'center', transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#8c8c8c'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+          >
+            <Minimize2 size={14} />
+          </button>
+          <button
+            onClick={onClose}
+            title="关闭"
+            style={{
+              background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
+              color: '#8c8c8c', cursor: 'pointer', padding: '4px 8px', display: 'flex',
+              alignItems: 'center', transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#ff4d4f'; e.currentTarget.style.borderColor = 'rgba(255,77,79,0.4)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#8c8c8c'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      </div>
+      {/* 播放器 */}
       <div style={{ position: 'relative', paddingTop: '56.25%' }}>
         <iframe
-          src={embedUrl}
+          src={`https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&high_quality=1&as_wide=1&page=1`}
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            border: 'none',
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none',
           }}
           allow="autoplay; fullscreen; encrypted-media"
           allowFullScreen
           referrerPolicy="no-referrer"
         />
       </div>
-      <div style={{ padding: '12px 16px', background: '#1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#f0f0f0', marginBottom: 4 }}>{mv.title}</div>
-          <div style={{ fontSize: 12, color: '#8c8c8c' }}>
-            {mv.author} · {mv.duration}
-            {mv.play > 0 && ` · ${mv.play > 10000 ? `${(mv.play / 10000).toFixed(0)}万次播放` : `${mv.play}次播放`}`}
-          </div>
-        </div>
-        <a href={bilibiliUrl} target="_blank" rel="noopener noreferrer"
-          style={{
-            color: '#FFA500', fontSize: 13, textDecoration: 'none', flexShrink: 0, marginLeft: 16,
-            padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,165,0,0.4)',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,165,0,0.1)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
-        >
-          在B站观看
-        </a>
+    </div>
+  )
+}
+
+// Mini 后台播放栏
+function MiniPlayer({ mv, onRestore, onClose }) {
+  if (!mv) return null
+  return (
+    <div style={{
+      position: 'fixed', bottom: 74, right: 20, zIndex: 1000,
+      background: 'rgba(18, 18, 18, 0.95)', backdropFilter: 'blur(16px)',
+      borderRadius: 10, border: '1px solid rgba(255,165,0,0.3)',
+      padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 10,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.5)', maxWidth: 360,
+      animation: 'slideUp 0.3s ease-out',
+    }}>
+      <div style={{ width: 36, height: 20, borderRadius: 3, overflow: 'hidden', flexShrink: 0, background: '#000' }}>
+        <iframe
+          src={`https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&page=1`}
+          style={{ width: '100%', height: '100%', border: 'none', pointerEvents: 'none' }}
+          allow="autoplay"
+          referrerPolicy="no-referrer"
+        />
       </div>
-    </Modal>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {mv.title}
+        </div>
+        <div style={{ fontSize: 11, color: '#FFA500' }}>后台播放中</div>
+      </div>
+      <button
+        onClick={onRestore}
+        title="恢复"
+        style={{ background: 'none', border: 'none', color: '#FFA500', cursor: 'pointer', padding: 2 }}
+      >
+        <Maximize2 size={15} />
+      </button>
+      <button
+        onClick={onClose}
+        title="关闭"
+        style={{ background: 'none', border: 'none', color: '#8c8c8c', cursor: 'pointer', padding: 2 }}
+      >
+        <X size={15} />
+      </button>
+    </div>
   )
 }
 
 export default function MVPage() {
   const [displayCount, setDisplayCount] = useState(MV_PAGE_SIZE)
   const [playingMV, setPlayingMV] = useState(null)
+  const [minimizedMV, setMinimizedMV] = useState(null)
   const [activeTab, setActiveTab] = useState('all')
+  const playerRef = useRef(null)
 
   useEffect(() => {
     document.title = 'EchoBeats - MV精选'
@@ -200,6 +272,37 @@ export default function MVPage() {
   const handleTabChange = (key) => {
     setActiveTab(key)
     setDisplayCount(MV_PAGE_SIZE)
+  }
+
+  // 点击播放 MV
+  const handlePlay = (mv) => {
+    setPlayingMV(mv)
+    setMinimizedMV(null)
+    // 滚动到播放器位置
+    setTimeout(() => {
+      playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+
+  // 最小化（保持后台播放）
+  const handleMinimize = () => {
+    setMinimizedMV(playingMV)
+    setPlayingMV(null)
+  }
+
+  // 关闭播放器
+  const handleClose = () => {
+    setPlayingMV(null)
+    setMinimizedMV(null)
+  }
+
+  // 从 mini 恢复
+  const handleRestore = () => {
+    setPlayingMV(minimizedMV)
+    setMinimizedMV(null)
+    setTimeout(() => {
+      playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
   }
 
   // 生成 Tab items (top artists by count)
@@ -238,6 +341,11 @@ export default function MVPage() {
       </div>
 
       <div className="panel">
+        {/* 内嵌播放器 */}
+        <div ref={playerRef}>
+          <MVPlayer mv={playingMV} onClose={handleClose} onMinimize={handleMinimize} />
+        </div>
+
         <Tabs
           activeKey={activeTab}
           onChange={handleTabChange}
@@ -253,7 +361,7 @@ export default function MVPage() {
           }}
         >
           {displayed.map((mv) => (
-            <MVCard key={mv.bvid} mv={mv} onPlay={setPlayingMV} />
+            <MVCard key={mv.bvid} mv={mv} onPlay={handlePlay} />
           ))}
         </div>
 
@@ -272,7 +380,15 @@ export default function MVPage() {
         )}
       </div>
 
-      <MVPlayer mv={playingMV} onClose={() => setPlayingMV(null)} />
+      {/* Mini 后台播放器 */}
+      <MiniPlayer mv={minimizedMV} onRestore={handleRestore} onClose={handleClose} />
+
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
     </div>
   )
 }
