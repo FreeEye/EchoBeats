@@ -132,12 +132,11 @@ async function main() {
 
   console.log(`Audio sources: ${resolvedCount}/${allSongs.length} resolved`)
 
-  // 将额外艺人加入 artist list
+  // 将所有额外艺人加入 artist list（无论是否有歌曲）
   for (const name of extraNames) {
     const songs = artistSongsMap[name]
-    if (songs && songs.length > 0) {
-      artistsData.artists.push({ name, id: 0, cover: '', count: songs.length })
-    }
+    const count = songs ? songs.length : 0
+    artistsData.artists.push({ name, id: 0, cover: '', count })
   }
 
   // 4. 保存数据
