@@ -10,7 +10,8 @@ export default function LyricsPanel() {
 
   useEffect(() => {
     if (isOpen && song) {
-      fetchLyrics(song).then((text) => {
+      fetchLyrics(song).then((result) => {
+        const text = result.plainLyrics || result.syncedLyrics || ''
         setLyrics(text || '暂无歌词')
       }).catch(() => {
         setLyrics('暂无歌词')

@@ -199,34 +199,38 @@ export async function getSongPool() {
   return []
 }
 
-// 获取歌词（通过 LRCLIB API）
+// 获取歌词（通过 LRCLIB API），返回 { plainLyrics, syncedLyrics }
 export async function fetchLyrics(song) {
   const artistName = song.artists?.[0]?.name || ''
   const trackName = song.name || ''
-  if (!artistName || !trackName) return ''
+  if (!artistName || !trackName) return { plainLyrics: '', syncedLyrics: '' }
 
-  try {
-    const url = `https://lrclib.net/api/search?artist_name=${encodeURIComponent(artistName)}&track_name=${encodeURIComponent(trackName)}`
+  const attempt = async (url) => {
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const results = await res.json()
     if (results?.length > 0) {
-      return results[0].plainLyrics || results[0].syncedLyrics || ''
-    }
-  } catch (_) {
-    // 降级：尝试用艺人和歌名重新搜索
-    try {
-      const q = encodeURIComponent(`${artistName} ${trackName}`)
-      const res = await fetch(`https://lrclib.net/api/search?q=${q}`)
-      if (res.ok) {
-        const results = await res.json()
-        if (results?.length > 0) {
-          return results[0].plainLyrics || results[0].syncedLyrics || ''
-        }
+      return {
+        plainLyrics: results[0].plainLyrics || '',
+        syncedLyrics: results[0].syncedLyrics || '',
       }
-    } catch (_2) { /* 降级也失败 */ }
+    }
+    return null
   }
-  return ''
+
+  try {
+    const url = `https://lrclib.net/api/search?artist_name=${encodeURIComponent(artistName)}&track_name=${encodeURIComponent(trackName)}`
+    const result = await attempt(url)
+    if (result) return result
+  } catch (_) { /* fall through */ }
+
+  try {
+    const q = encodeURIComponent(`${artistName} ${trackName}`)
+    const result = await attempt(`https://lrclib.net/api/search?q=${q}`)
+    if (result) return result
+  } catch (_2) { /* fall through */ }
+
+  return { plainLyrics: '', syncedLyrics: '' }
 }
 
 // 搜索（客户端）

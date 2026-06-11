@@ -14,6 +14,7 @@ import {
   Repeat as LoopIcon,
   ListOrdered as OrderIcon,
   ListMusic as PlayingListIcon,
+  Music as LyricsIcon,
   Shuffle as ShuffleIcon,
   Repeat1 as SingleIcon,
   SkipBack,
@@ -27,6 +28,8 @@ import usePositionedMessage from '@/hooks/usePositionedMessage'
 import { useListenlistOpenStore } from '@/stores/useListenlistOpenStore'
 import { useListenlistStore } from '@/stores/useListenlistStore'
 import { useSongInPlayerStore } from '@/stores/useSongInPlayerStore'
+import { useAudioTimeStore } from '@/stores/useAudioTimeStore'
+import { useLyricsStore } from '@/stores/useLyricsStore'
 import toMinAndSec from '@/utils/toMinAndSec'
 import { getSongSource } from '@/services/dataService'
 import IconLikeSong from '../IconLikeSong'
@@ -45,6 +48,8 @@ function Player() {
     (item) => item.newId === songInPlayer?.newId,
   )
   const { isListenlistOpen, setIsListenlistOpen } = useListenlistOpenStore()
+  const setCurrentTime = useAudioTimeStore((s) => s.setCurrentTime)
+  const { isFloatingOpen, openFloating, closeFloating } = useLyricsStore()
   const [showMessage, contextHolder] = usePositionedMessage()
   const [paused, setPaused] = useState(true)
   const [playSignal, setPlaySignal] = useState(false)
@@ -183,7 +188,9 @@ function Player() {
     setPaused(false)
   }
   function onAudioTimeUpdate() {
-    setAudioCurrentTime(audioRef.current.currentTime)
+    const t = audioRef.current.currentTime
+    setAudioCurrentTime(t)
+    setCurrentTime(t)
   }
   function onAudioPause() {
     if (intervalRef.current) {
@@ -494,17 +501,19 @@ function Player() {
                     </ConfigProvider>
                   </Space>
                 </Col>
-                {/* <Col>
-                <LyricsIcon
-                  className={
-                    isScrollingLyricsOpen
-                      ? 'icon is-on'
-                      : 'icon'
-                  }
-                  title="滚动歌词"
-                  onClick={onLyricsIconClick}
-                />
-              </Col> */}
+                <Col>
+                  <LyricsIcon
+                    className={isFloatingOpen ? 'icon is-on' : 'icon'}
+                    title="浮动歌词"
+                    onClick={() => {
+                      if (isFloatingOpen) {
+                        closeFloating()
+                      } else {
+                        openFloating(songInPlayer)
+                      }
+                    }}
+                  />
+                </Col>
                 <Col>
                   <Badge
                     count={`${currentIndex + 1} / ${filteredListenlist.length}`}

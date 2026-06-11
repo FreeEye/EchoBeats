@@ -5,6 +5,7 @@ import Header from './components/Header'
 import Player from './components/player/player'
 import ListenlistWindow from '@/components/listenlist-window/ListenlistWindow'
 import LyricsPanel from '@/components/lyrics/LyricsPanel'
+import FloatingLyrics from '@/components/lyrics/FloatingLyrics'
 import ErrorBoundary from './components/ErrorBoundary'
 import Loading from '@/components/ui/loading'
 import { useListenlistOpenStore } from '@/stores/useListenlistOpenStore'
@@ -68,6 +69,7 @@ function App() {
             <Player />
             {isListenlistOpen && <ListenlistWindow />}
             <LyricsPanel />
+            <FloatingLyrics />
           </Layout>
         </ConfigProvider>
       </HashRouter>

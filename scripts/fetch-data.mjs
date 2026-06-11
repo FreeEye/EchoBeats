@@ -60,7 +60,19 @@ async function main() {
   const EXTRA_ARTISTS = [
     "周杰伦", "谭咏麟", "张国荣", "张学友", "梅艳芳",
     "罗大佑", "李宗盛", "孙燕姿", "蔡依林", "王力宏",
-    "陶喆", "张惠妹", "林忆莲", "伍佰", "刘若英", "梁静茹"
+    "陶喆", "张惠妹", "林忆莲", "伍佰", "刘若英", "梁静茹",
+    "邓丽君", "S.H.E", "张信哲", "田馥甄", "李健", "朴树",
+    "王心凌", "张韶涵", "杨丞琳", "萧亚轩", "莫文蔚", "刘德华",
+    "郭富城", "黎明", "陈慧娴", "王杰", "齐秦", "赵传",
+    "张宇", "游鸿明", "周华健", "任贤齐", "光良", "品冠",
+    "苏打绿", "飞儿乐团", "信乐团", "动力火车", "迪克牛仔",
+    "那英", "韩红", "孙楠", "汪峰", "许巍", "郑钧",
+    "老狼", "叶倩文", "林子祥", "陈百强", "邰正宵", "孟庭苇",
+    "Coldplay", "Maroon 5", "Ed Sheeran", "Imagine Dragons",
+    "Bruno Mars", "Adele", "Rihanna", "Eminem", "Lady Gaga",
+    "Katy Perry", "Justin Bieber", "The Weeknd", "Dua Lipa",
+    "Billie Eilish", "Ariana Grande", "Post Malone",
+    "Queen", "The Beatles", "Eagles", "Michael Jackson",
   ]
 
   // 合并并去重

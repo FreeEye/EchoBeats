@@ -5,6 +5,7 @@ import { useSongPool } from '@/hooks/useSongPool'
 import SongList from '@/components/SongList'
 import OperatingBarOfSongList from '@/components/OperatingBarOfSongList'
 import DataLoadingGuard from '@/components/guards/DataLoadingGuard'
+import EraPlaylists from '@/components/EraPlaylists'
 
 function ChartSection({ title, icon, songs, max = 20 }) {
   if (!songs || songs.length === 0) return null
@@ -93,13 +94,14 @@ export default function Home() {
         <ArtistsSection />
 
         <DataLoadingGuard loading={loading}>
+          <EraPlaylists />
           <ChartSection
             title="热歌榜"
             icon={
               <span style={{ fontSize: 18 }}>🔥</span>
             }
             songs={hotSongs}
-            max={20}
+            max={60}
           />
           <ChartSection
             title="新歌榜"
@@ -107,7 +109,7 @@ export default function Home() {
               <span style={{ fontSize: 18 }}>🆕</span>
             }
             songs={newSongs}
-            max={15}
+            max={60}
           />
         </DataLoadingGuard>
       </div>
