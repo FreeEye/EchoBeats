@@ -8,6 +8,7 @@ import { getArtists, getSongPool } from '@/services/dataService'
 
 function ArtistCard({ artist, onClick }) {
   const bgColor = generateSongCover(artist.name)
+  const initial = (artist.name || '?')[0]
   return (
     <div onClick={onClick} style={{ cursor: 'pointer', background: 'rgba(255,255,255,0.03)', borderRadius: 12,
       padding: 16, display: 'flex', alignItems: 'center', gap: 14, transition: 'all 0.2s',
@@ -16,7 +17,10 @@ function ArtistCard({ artist, onClick }) {
       onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)' }}>
       <div style={{ width: 56, height: 56, borderRadius: '50%', flexShrink: 0,
         background: artist.pic ? `url(${artist.pic}) center/cover` : bgColor,
-        border: '2px solid rgba(255,255,255,0.08)' }} />
+        border: '2px solid rgba(255,255,255,0.08)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {!artist.pic && <span style={{ fontSize: 22, fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>{initial}</span>}
+      </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 600, color: '#f0f0f0' }}>{artist.name}</div>
         {artist.songCount > 0 && <div style={{ fontSize: 12, color: '#8c8c8c', marginTop: 2 }}>{artist.songCount} 首</div>}

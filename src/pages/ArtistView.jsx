@@ -125,7 +125,7 @@ export default function ArtistView() {
             background: artistPic ? `url(${artistPic}) center/cover` : generateSongCover(decodedName),
             border: '3px solid rgba(255,165,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
-            {!artistPic && <User size={36} color="#8c8c8c" />}
+            {!artistPic && <span style={{ fontSize: 36, fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>{(decodedName || '?')[0]}</span>}
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>

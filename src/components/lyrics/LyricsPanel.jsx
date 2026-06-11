@@ -32,9 +32,9 @@ export default function LyricsPanel() {
     return () => document.removeEventListener('keydown', handleKey)
   }, [isOpen, close])
 
-  if (!isOpen || !displaySong) return null
-
   const displaySong = (isOpen && songInPlayer) ? songInPlayer : song
+
+  if (!isOpen || !displaySong) return null
 
   const coverStyle = displaySong.cover
     ? { backgroundImage: `url(${displaySong.cover})` }

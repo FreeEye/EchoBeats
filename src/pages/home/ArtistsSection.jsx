@@ -7,6 +7,7 @@ import { getArtists } from '@/services/dataService'
 
 function ArtistCard({ artist, onClick }) {
   const bgColor = generateSongCover(artist.name)
+  const initial = (artist.name || '?')[0]
   return (
     <div onClick={onClick} className="cursor-pointer"
       style={{ textAlign: 'center', padding: '8px 6px', borderRadius: 10, transition: 'background 0.2s' }}
@@ -14,7 +15,10 @@ function ArtistCard({ artist, onClick }) {
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}>
       <div style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto 6px',
         background: artist.pic ? `url(${artist.pic}) center/cover` : bgColor,
-        border: '2px solid rgba(255,255,255,0.08)' }} />
+        border: '2px solid rgba(255,255,255,0.08)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {!artist.pic && <span style={{ fontSize: 24, fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>{initial}</span>}
+      </div>
       <div className="truncate" style={{ fontSize: 13, fontWeight: 500, color: '#d9d9d9' }}>{artist.name}</div>
     </div>
   )
