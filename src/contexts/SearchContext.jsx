@@ -71,12 +71,27 @@ export const SearchProvider = ({ children }) => {
       results.kugou = { searchSuccess: true, data: { songs: kRes.value.songs, totalCount: kRes.value.songs.length } }
     }
 
-    // 服务端无结果时降级到客户端搜索
-    if (Object.keys(results).length === 0 && songPool.length > 0) {
+    // 始终执行客户端搜索，补充服务端结果
+    if (songPool.length > 0) {
       const filtered = clientSearch(songPool, keyword)
       if (filtered.length > 0) {
-        results.local = { searchSuccess: true, data: { songs: filtered, totalCount: filtered.length } }
+        // 去重：排除已由服务端返回的歌曲
+        const serverNewIds = new Set()
+        for (const key of Object.keys(results)) {
+          if (results[key]?.data?.songs) {
+            results[key].data.songs.forEach(s => { if (s.newId) serverNewIds.add(s.newId) })
+          }
+        }
+        const deduped = filtered.filter(s => !serverNewIds.has(s.newId))
+        if (deduped.length > 0) {
+          results.local = { searchSuccess: true, data: { songs: deduped, totalCount: deduped.length } }
+        }
       }
+    }
+
+    // 无任何结果时的兜底
+    if (Object.keys(results).length === 0) {
+      results.local = { searchSuccess: false, data: { songs: [], totalCount: 0 } }
     }
 
     setSearchResults(results)

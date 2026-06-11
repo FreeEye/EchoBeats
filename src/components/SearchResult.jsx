@@ -3,6 +3,7 @@ import { Tag } from 'antd'
 import SongList from './SongList'
 import Wrapper from './Wrapper'
 import OperatingBarOfSongList from './OperatingBarOfSongList'
+import { useSearchKeyword } from '../contexts/SearchContext'
 
 const providerConfig = {
   aggregated: { label: '搜索结果', color: '#FFA500' },
@@ -15,6 +16,7 @@ const providerConfig = {
 function SearchResult({ result, provider }) {
   const songs = useMemo(() => result?.data?.songs || [], [result])
   const totalCount = useMemo(() => result?.data?.totalCount || 0, [result])
+  const { searchKeyword } = useSearchKeyword()
 
   if (!result || !result.data || songs.length === 0) {
     return null
@@ -48,7 +50,7 @@ function SearchResult({ result, provider }) {
         </div>
       }
     >
-      <SongList songs={songs} />
+      <SongList songs={songs} highlight={searchKeyword} />
     </Wrapper>
   )
 }

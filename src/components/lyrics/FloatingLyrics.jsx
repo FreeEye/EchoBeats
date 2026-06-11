@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Music, ZoomIn, ZoomOut } from 'lucide-react'
 import { useLyricsStore } from '@/stores/useLyricsStore'
 import { useAudioTimeStore } from '@/stores/useAudioTimeStore'
+import { useSongInPlayerStore } from '@/stores/useSongInPlayerStore'
 import { fetchLyrics } from '@/services/dataService'
 
 const MIN_FONT = 14
@@ -32,6 +33,7 @@ function parseLRC(lrcText) {
 export default function FloatingLyrics() {
   const { isFloatingOpen, song, lyrics, setLyrics } = useLyricsStore()
   const currentTime = useAudioTimeStore((s) => s.currentTime)
+  const songInPlayer = useSongInPlayerStore((s) => s.songInPlayer)
   const [syncedLyrics, setSyncedLyrics] = useState([])
   const [currentIndex, setCurrentIndex] = useState(-1)
   const [fontSize, setFontSize] = useState(() => {
@@ -43,13 +45,16 @@ export default function FloatingLyrics() {
   const draggingRef = useRef(false)
   const lastYRef = useRef(0)
   const dragStartFontRef = useRef(DEFAULT_FONT)
+  const lastFetchedIdRef = useRef(null)
 
-  // Fetch lyrics when floating mode opens
+  // Fetch lyrics when floating mode opens or song changes
   useEffect(() => {
-    if (isFloatingOpen && song) {
+    const activeSong = (isFloatingOpen && songInPlayer) ? songInPlayer : song
+    if (isFloatingOpen && activeSong && activeSong.newId !== lastFetchedIdRef.current) {
+      lastFetchedIdRef.current = activeSong.newId
       setSyncedLyrics([])
       setCurrentIndex(-1)
-      fetchLyrics(song).then((result) => {
+      fetchLyrics(activeSong).then((result) => {
         const plain = typeof result === 'string' ? result : result.plainLyrics
         const synced = typeof result === 'string' ? '' : result.syncedLyrics
         if (synced) {
@@ -65,7 +70,7 @@ export default function FloatingLyrics() {
         setLyrics('')
       })
     }
-  }, [isFloatingOpen, song?.newId])
+  }, [isFloatingOpen, song?.newId, songInPlayer?.newId])
 
   // Sync current time to lyrics line using rAF
   useEffect(() => {
@@ -163,7 +168,9 @@ export default function FloatingLyrics() {
     localStorage.setItem('lyricsFontSize', n)
   }
 
-  if (!isFloatingOpen || !song) return null
+  const displaySong = (isFloatingOpen && songInPlayer) ? songInPlayer : song
+
+  if (!isFloatingOpen || !displaySong) return null
 
   const hasSynced = syncedLyrics.length > 0
   const prevLine = hasSynced && currentIndex > 0 ? syncedLyrics[currentIndex - 1] : null
@@ -215,7 +222,7 @@ export default function FloatingLyrics() {
         }}>
           <Music size={Math.round(11 * curveRatio)} color="#FFA500" />
           <span style={{ fontSize: Math.round(10 * curveRatio), color: '#8c8c8c', fontWeight: 500 }}>
-            {song.name} - {song.artists?.map(a => a.name).join('/') || '未知'}
+            {displaySong.name} - {displaySong.artists?.map(a => a.name).join('/') || '未知'}
           </span>
           <div style={{ display: 'flex', gap: 2, marginLeft: 8, pointerEvents: 'auto' }}>
             <button onClick={zoomOut}

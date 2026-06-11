@@ -5,7 +5,7 @@ import AddToPlaylist from './AddToPlaylist'
 import BasicIconsInSongItem from './BasicIconsInSongItem'
 import './song_item.css'
 
-function SongItemWithCover({ song }) {
+function SongItemWithCover({ song, highlight }) {
   const setSongInPlayer = useSongInPlayerStore((s) => s.setSongInPlayer)
   const newIdOfCurrentSong = useSongInPlayerStore((s) => s.songInPlayer?.newId)
 
@@ -25,7 +25,7 @@ function SongItemWithCover({ song }) {
     >
       <div className="flex w-full items-center gap-2.5">
         <div className="w-[400px]">
-          <SongWithCover song={song} />
+          <SongWithCover song={song} highlight={highlight} />
         </div>
         <div className="hover-to-show flex items-center gap-1 flex-shrink-0">
           <BasicIconsInSongItem song={song} />

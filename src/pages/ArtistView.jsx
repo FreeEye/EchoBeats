@@ -38,19 +38,25 @@ export default function ArtistView() {
           addFromSource('精选歌曲', artistSongsRes.value)
         }
 
-        // 服务器无数据时降级到本地歌曲池匹配
-        if (Object.keys(sourceMap).length === 0) {
-          const pool = poolData.status === 'fulfilled' ? poolData.value : []
-          if (pool.length > 0) {
-            const matched = pool.filter((s) =>
-              s.artists?.some(
-                (a) =>
-                  a.name === decodedName ||
-                  a.name.includes(decodedName) ||
-                  decodedName.includes(a.name),
-              ),
-            )
-            if (matched.length > 0) addFromSource('本地歌曲库', matched)
+        // 始终从本地歌曲池补充匹配（API 可能数据不完整）
+        const pool = poolData.status === 'fulfilled' ? poolData.value : []
+        if (pool.length > 0) {
+          const apiNewIds = new Set((artistSongsRes.status === 'fulfilled' ? artistSongsRes.value : []).map(s => s.newId))
+          const matched = pool.filter((s) =>
+            !apiNewIds.has(s.newId) && s.artists?.some(
+              (a) =>
+                a.name === decodedName ||
+                a.name.includes(decodedName) ||
+                decodedName.includes(a.name),
+            ),
+          )
+          if (matched.length > 0) {
+            // 合并到精选歌曲或单独来源
+            if (sourceMap['精选歌曲']) {
+              sourceMap['精选歌曲'] = [...sourceMap['精选歌曲'], ...matched]
+            } else {
+              addFromSource('本地歌曲库', matched)
+            }
           }
         }
 

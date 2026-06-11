@@ -1,23 +1,29 @@
 import { useEffect, useRef } from 'react'
 import { X, Music, User, Loader2 } from 'lucide-react'
 import { useLyricsStore } from '@/stores/useLyricsStore'
+import { useSongInPlayerStore } from '@/stores/useSongInPlayerStore'
 import { fetchLyrics } from '@/services/dataService'
 import { generateSongCover } from '@/utils/generateSongCover'
 
 export default function LyricsPanel() {
   const { isOpen, song, lyrics, isLoading, close, setLyrics } = useLyricsStore()
+  const songInPlayer = useSongInPlayerStore((s) => s.songInPlayer)
   const panelRef = useRef(null)
+  const lastFetchedIdRef = useRef(null)
 
   useEffect(() => {
-    if (isOpen && song) {
-      fetchLyrics(song).then((result) => {
+    // 歌词面板打开时，跟随当前播放歌曲
+    const activeSong = (isOpen && songInPlayer) ? songInPlayer : song
+    if (isOpen && activeSong && activeSong.newId !== lastFetchedIdRef.current) {
+      lastFetchedIdRef.current = activeSong.newId
+      fetchLyrics(activeSong).then((result) => {
         const text = result.plainLyrics || result.syncedLyrics || ''
         setLyrics(text || '暂无歌词')
       }).catch(() => {
         setLyrics('暂无歌词')
       })
     }
-  }, [isOpen, song?.newId])
+  }, [isOpen, song?.newId, songInPlayer?.newId])
 
   useEffect(() => {
     if (!isOpen) return
@@ -26,13 +32,15 @@ export default function LyricsPanel() {
     return () => document.removeEventListener('keydown', handleKey)
   }, [isOpen, close])
 
-  if (!isOpen || !song) return null
+  if (!isOpen || !displaySong) return null
 
-  const coverStyle = song.cover
-    ? { backgroundImage: `url(${song.cover})` }
-    : { backgroundColor: generateSongCover(song.newId) }
+  const displaySong = (isOpen && songInPlayer) ? songInPlayer : song
 
-  const artistNames = song.artists?.map((a) => a.name).join(' / ') || '未知艺人'
+  const coverStyle = displaySong.cover
+    ? { backgroundImage: `url(${displaySong.cover})` }
+    : { backgroundColor: generateSongCover(displaySong.newId) }
+
+  const artistNames = displaySong.artists?.map((a) => a.name).join(' / ') || '未知艺人'
 
   const lyricsLines = lyrics
     .split('\n')
@@ -144,7 +152,7 @@ export default function LyricsPanel() {
           />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 16, fontWeight: 600, color: '#f0f0f0', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {song.name}
+              {displaySong.name}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <User size={13} color="#8c8c8c" />

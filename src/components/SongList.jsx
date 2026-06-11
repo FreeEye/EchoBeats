@@ -1,6 +1,6 @@
 import SongItemWithCover from '@/components/song-item/SongItemWithCover'
 
-function SongList({ songs, ranking = false }) {
+function SongList({ songs, ranking = false, highlight }) {
   return (
     <ol>
       {songs.map((song, idx) => (
@@ -19,7 +19,7 @@ function SongList({ songs, ranking = false }) {
             </span>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <SongItemWithCover song={song} />
+            <SongItemWithCover song={song} highlight={highlight} />
           </div>
         </div>
       ))}

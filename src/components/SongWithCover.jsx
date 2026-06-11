@@ -2,7 +2,18 @@ import LinkSearchArtist from './LinkSearchArtist'
 import { generateSongCover } from '@/utils/generateSongCover'
 import { useLyricsStore } from '@/stores/useLyricsStore'
 
-function SongWithCover({ song }) {
+function highlightText(text, keyword) {
+  if (!keyword || !text) return text
+  const kw = keyword.trim()
+  if (!kw) return text
+  const regex = new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+  const parts = text.split(regex)
+  return parts.map((part, i) =>
+    regex.test(part) ? <mark key={i} style={{ color: '#FFA500', background: 'rgba(255,165,0,0.15)', borderRadius: 2, padding: '0 1px' }}>{part}</mark> : part
+  )
+}
+
+function SongWithCover({ song, highlight }) {
   const openLyrics = useLyricsStore((s) => s.open)
 
   const backgroundStyle = song.cover
@@ -36,7 +47,7 @@ function SongWithCover({ song }) {
           onClick={handleOpenLyrics}
           title="查看歌词"
         >
-          {song.name}
+          {highlight ? highlightText(song.name, highlight) : song.name}
           {song.alias && (
             <span
               style={{
@@ -46,7 +57,7 @@ function SongWithCover({ song }) {
                 color: '#8c8c8c',
               }}
             >
-              {song.alias}
+              {highlight ? highlightText(song.alias, highlight) : song.alias}
             </span>
           )}
         </div>
@@ -56,7 +67,11 @@ function SongWithCover({ song }) {
         >
           {song.artists?.map((artist, idx) => (
             <span key={artist.id || idx}>
-              <LinkSearchArtist artistName={artist.name} />
+              {highlight ? (
+                <span style={{ color: '#bfbfbf' }}>{highlightText(artist.name, highlight)}</span>
+              ) : (
+                <LinkSearchArtist artistName={artist.name} />
+              )}
               {idx < song.artists.length - 1 && (
                 <span style={{ color: '#595959', margin: '0 2px' }}>,</span>
               )}

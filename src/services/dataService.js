@@ -233,36 +233,61 @@ export async function fetchLyrics(song) {
   return { plainLyrics: '', syncedLyrics: '' }
 }
 
-// 搜索（客户端）
+// 搜索（客户端）- 精准优先，再模糊
 export function clientSearch(songs, keyword) {
   if (!keyword || !songs.length) return []
-  const kw = keyword.toLowerCase()
+  const kw = keyword.toLowerCase().trim()
   const chars = [...kw]
 
   const scored = songs.map((song) => {
     let bestScore = 0
     const name = (song.name || '').toLowerCase()
     const alias = (song.alias || '').toLowerCase()
-    const artistStr = (song.artists || []).map((a) => (a.name || '').toLowerCase()).join(' ')
+    const artistNames = (song.artists || []).map((a) => (a.name || '').toLowerCase())
+    const artistStr = artistNames.join(' ')
 
-    // 精确匹配
-    if (name.includes(kw)) bestScore = Math.max(bestScore, 95)
-    if (alias.includes(kw)) bestScore = Math.max(bestScore, 90)
-    if (artistStr.includes(kw)) bestScore = Math.max(bestScore, 85)
+    // 1. 精确匹配：歌名完全包含关键词
+    if (name === kw) bestScore = Math.max(bestScore, 100)
+    else if (name.startsWith(kw)) bestScore = Math.max(bestScore, 98)
+    else if (name.includes(kw)) bestScore = Math.max(bestScore, 95)
 
-    // 逐字匹配
+    // 2. 别称匹配
+    if (alias === kw) bestScore = Math.max(bestScore, 93)
+    else if (alias.includes(kw)) bestScore = Math.max(bestScore, 90)
+
+    // 3. 艺人精确匹配
+    if (artistStr === kw) bestScore = Math.max(bestScore, 92)
+    else if (artistNames.some(a => a === kw)) bestScore = Math.max(bestScore, 91)
+    else if (artistStr.includes(kw)) bestScore = Math.max(bestScore, 85)
+
+    // 4. 关键词拆分匹配（处理多词搜索如"人间 共鸣"）
+    if (bestScore === 0) {
+      const kwParts = kw.split(/\s+/).filter(p => p.length > 0)
+      if (kwParts.length > 1) {
+        const allPartsInName = kwParts.every(p => name.includes(p))
+        const allPartsInArtist = kwParts.every(p => artistStr.includes(p))
+        if (allPartsInName) bestScore = Math.max(bestScore, 80)
+        else if (allPartsInArtist) bestScore = Math.max(bestScore, 72)
+      }
+    }
+
+    // 5. 逐字匹配（每个字都在歌名或艺人名中出现）
     if (bestScore === 0) {
       const allInName = chars.every((c) => name.includes(c))
       const allInArtist = chars.every((c) => artistStr.includes(c))
       if (allInName) bestScore = 75
       else if (allInArtist) bestScore = 65
-      else {
-        const inName = chars.filter((c) => name.includes(c)).length
-        const inArtist = chars.filter((c) => artistStr.includes(c)).length
-        const ratio = Math.max(inName, inArtist) / chars.length
-        if (ratio >= 0.5) bestScore = 30 + ratio * 30
-      }
     }
+
+    // 6. 部分字符匹配（放宽条件）
+    if (bestScore === 0) {
+      const inName = chars.filter((c) => name.includes(c)).length
+      const inArtist = chars.filter((c) => artistStr.includes(c)).length
+      const maxRatio = Math.max(inName, inArtist) / chars.length
+      if (maxRatio >= 0.6) bestScore = 30 + maxRatio * 30
+      else if (maxRatio >= 0.4) bestScore = 20 + maxRatio * 25
+    }
+
     return { song, score: bestScore }
   })
 
