@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from 'react'
-import { Film, Play, X, Minimize2, Maximize2, ExternalLink } from 'lucide-react'
+import { Film, Play, X, Minimize2, Maximize2, ExternalLink, PictureInPicture2 } from 'lucide-react'
 import { Button, Tabs } from 'antd'
 import allMVs from '@/data/mvs.json'
 import { generateSongCover } from '@/utils/generateSongCover'
@@ -116,10 +116,24 @@ function MVCard({ mv, onPlay }) {
   )
 }
 
-// 内嵌 MV 播放器（支持后台播放）
-function MVPlayer({ mv, onClose, onMinimize }) {
+// 内嵌 MV 播放器（支持后台播放、画中画）
+function MVPlayer({ mv, onClose, onMinimize, onPiP }) {
   if (!mv) return null
   const bilibiliUrl = `https://www.bilibili.com/video/${mv.bvid}`
+  const handlePiP = () => {
+    const w = 480, h = 300
+    const left = window.screen.width - w - 40
+    const top = window.screen.height - h - 80
+    const pip = window.open(
+      `https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&high_quality=1&page=1`,
+      'EchoBeats_MV_PiP',
+      `width=${w},height=${h},left=${left},top=${top},resizable=yes,alwaysOnTop=yes`
+    )
+    if (pip) {
+      pip.document.title = mv.title
+      onPiP?.()
+    }
+  }
   return (
     <div style={{
       background: '#0a0a0a',
@@ -153,6 +167,15 @@ function MVPlayer({ mv, onClose, onMinimize }) {
           >
             <ExternalLink size={13} /> B站观看
           </a>
+          <button onClick={handlePiP} title="画中画播放"
+            style={{
+              background: 'none', border: '1px solid rgba(255,165,0,0.3)', borderRadius: 6,
+              color: '#FFA500', cursor: 'pointer', padding: '4px 8px', display: 'flex',
+              alignItems: 'center', transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,165,0,0.1)' }}>
+            <PictureInPicture2 size={14} />
+          </button>
           <button
             onClick={onMinimize}
             title="最小化（继续后台播放）"
@@ -343,7 +366,7 @@ export default function MVPage() {
       <div className="panel">
         {/* 内嵌播放器 */}
         <div ref={playerRef}>
-          <MVPlayer mv={playingMV} onClose={handleClose} onMinimize={handleMinimize} />
+          <MVPlayer mv={playingMV} onClose={handleClose} onMinimize={handleMinimize} onPiP={() => handleMinimize()} />
         </div>
 
         <Tabs

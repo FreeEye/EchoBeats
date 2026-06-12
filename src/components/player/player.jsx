@@ -15,6 +15,7 @@ import {
   ListOrdered as OrderIcon,
   ListMusic as PlayingListIcon,
   Music as LyricsIcon,
+  PictureInPicture2 as PiPIcon,
   Shuffle as ShuffleIcon,
   Repeat1 as SingleIcon,
   SkipBack,
@@ -37,6 +38,7 @@ import PauseCircleFilled from '../icons/PauseCircleFilled'
 import PlayCircleFilled from '../icons/PlayCircleFilled'
 import SongWithCover from '../SongWithCover'
 import AddToPlaylist from '../song-item/AddToPlaylist'
+import { useAudioPiP } from './AudioPiP'
 import './player.css'
 
 function Player() {
@@ -50,6 +52,7 @@ function Player() {
   const { isListenlistOpen, setIsListenlistOpen } = useListenlistOpenStore()
   const setCurrentTime = useAudioTimeStore((s) => s.setCurrentTime)
   const { isFloatingOpen, openFloating, closeFloating } = useLyricsStore()
+  const { isPiPActive, startPiP, stopPiP } = useAudioPiP()
   const [showMessage, contextHolder] = usePositionedMessage()
   const [paused, setPaused] = useState(true)
   const [playSignal, setPlaySignal] = useState(false)
@@ -500,6 +503,13 @@ function Player() {
                       />
                     </ConfigProvider>
                   </Space>
+                </Col>
+                <Col>
+                  <PiPIcon
+                    className={isPiPActive ? 'icon is-on' : 'icon'}
+                    title="画中画"
+                    onClick={() => { isPiPActive ? stopPiP() : startPiP() }}
+                  />
                 </Col>
                 <Col>
                   <LyricsIcon
