@@ -125,16 +125,9 @@ function closeWin(){ window.close(); }
 
 function prev(){
   window.opener.postMessage({type:'prev'},'*');
-  setTimeout(function(){
-    if(document.hidden) return;
-    window.opener.postMessage({type:'getSong'},'*');
-  },100);
 }
 function next(){
   window.opener.postMessage({type:'next'},'*');
-  setTimeout(function(){
-    window.opener.postMessage({type:'getSong'},'*');
-  },100);
 }
 function like(){
   isFav = !isFav;
@@ -146,7 +139,7 @@ function showPlaylist(){
   window.opener.postMessage({type:'showPlaylist'},'*');
 }
 function addToList(){
-  window.opener.postMessage({type:'addToPlaylist',song:song},'*');
+  window.opener.postMessage({type:'addToListenlist',song:song},'*');
 }
 function showLyrics(){
   if(!lyricsLines.length){
@@ -218,6 +211,13 @@ window.addEventListener('message',function(e){
     if(showLyricsMode) showLyrics();
   }
   if(e.data.type === 'updateFav'){ isFav = e.data.faved; likeBtn.className = isFav?'active':''; likeBtn.textContent = isFav?'❤ 已喜欢':'❤ 喜欢'; }
+  if(e.data.type === 'toast' && e.data.msg){
+    var toast = document.createElement('div');
+    toast.textContent = e.data.msg;
+    toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(255,165,0,0.9);color:#fff;padding:6px 18px;border-radius:20px;font-size:12px;z-index:999;pointer-events:none;transition:opacity 0.3s';
+    document.body.appendChild(toast);
+    setTimeout(function(){ toast.style.opacity = '0'; setTimeout(function(){ document.body.removeChild(toast); },300); },1500);
+  }
 });
 
 window.onbeforeunload = function(){ window.opener.postMessage({type:'desktopClosed'},'*'); };
@@ -296,11 +296,12 @@ export function MiniPlayer({ onRestore, onClose }) {
     songSourceRef.current = source
     const faved = favorites.some(f => f.newId === songInPlayer.newId)
     const html = buildDesktopHTML(songInPlayer, source, faved, listenlist.length)
-    const pip = window.open('', 'EchoBeats_Desktop',
+    const blob = new Blob([html], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const pip = window.open(url, 'EchoBeats_Desktop',
       `width=360,height=280,left=${window.screen.width-400},top=${window.screen.height-320},resizable=yes,alwaysOnTop=yes`)
-    if (!pip) return
-    pip.document.write(html)
-    pip.document.close()
+    if (!pip) { URL.revokeObjectURL(url); return }
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
     desktopRef.current = pip
   }, [songInPlayer, favorites, listenlist.length])
 
@@ -361,10 +362,21 @@ export function MiniPlayer({ onRestore, onClose }) {
         }
         case 'showPlaylist': {
           useListenlistOpenStore.getState().setIsListenlistOpen(true)
+          try { src.postMessage({ type: 'toast', msg: '歌单已打开' }, '*') } catch (_) {}
           break
         }
-        case 'addToPlaylist': {
-          // Handled by import
+        case 'addToListenlist': {
+          const songToAdd = e.data.song
+          if (songToAdd && songToAdd.newId) {
+            const store = useListenlistStore.getState()
+            const exists = store.listenlist.some(s => s?.newId === songToAdd.newId)
+            if (!exists) {
+              store.addSongToListenlist(songToAdd)
+              try { src.postMessage({ type: 'toast', msg: '已添加到播放列表' }, '*') } catch (_) {}
+            } else {
+              try { src.postMessage({ type: 'toast', msg: '歌曲已在播放列表中' }, '*') } catch (_) {}
+            }
+          }
           break
         }
         case 'desktopClosed': {
