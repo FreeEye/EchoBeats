@@ -16,6 +16,7 @@ import {
   ListMusic as PlayingListIcon,
   Music as LyricsIcon,
   PictureInPicture2 as PiPIcon,
+  Minimize2 as MinimizeIcon,
   Shuffle as ShuffleIcon,
   Repeat1 as SingleIcon,
   SkipBack,
@@ -38,7 +39,7 @@ import PauseCircleFilled from '../icons/PauseCircleFilled'
 import PlayCircleFilled from '../icons/PlayCircleFilled'
 import SongWithCover from '../SongWithCover'
 import AddToPlaylist from '../song-item/AddToPlaylist'
-import { useAudioPiP } from './AudioPiP'
+import { useAudioPiP, MiniPlayer } from './AudioPiP'
 import './player.css'
 
 function Player() {
@@ -52,7 +53,7 @@ function Player() {
   const { isListenlistOpen, setIsListenlistOpen } = useListenlistOpenStore()
   const setCurrentTime = useAudioTimeStore((s) => s.setCurrentTime)
   const { isFloatingOpen, openFloating, closeFloating } = useLyricsStore()
-  const { isPiPActive, startPiP, stopPiP } = useAudioPiP()
+  const { isPiPActive, isMini, startPiP, stopPiP, toggleMini, canvasRef } = useAudioPiP()
   const [showMessage, contextHolder] = usePositionedMessage()
   const [paused, setPaused] = useState(true)
   const [playSignal, setPlaySignal] = useState(false)
@@ -505,6 +506,13 @@ function Player() {
                   </Space>
                 </Col>
                 <Col>
+                  <MinimizeIcon
+                    className="icon"
+                    title="最小化"
+                    onClick={toggleMini}
+                  />
+                </Col>
+                <Col>
                   <PiPIcon
                     className={isPiPActive ? 'icon is-on' : 'icon'}
                     title="画中画"
@@ -554,6 +562,10 @@ function Player() {
           </Row>
         </div>
       </div>
+      {/* 画中画隐藏 canvas */}
+      <canvas ref={canvasRef} style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1 }} />
+      {/* 迷你悬浮播放条 */}
+      {isMini && <MiniPlayer onRestore={toggleMini} onClose={toggleMini} />}
     </>
   )
 }
