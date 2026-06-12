@@ -1,1 +1,0 @@
-import{R as e,f as t}from"./index-Btt7ge5X.js";var n=e();function r({loading:e,children:r}){return e?(0,n.jsx)(t,{kind:`data`}):r}export{r as t};
