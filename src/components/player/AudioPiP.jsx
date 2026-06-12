@@ -1,10 +1,85 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { X, Maximize2 } from 'lucide-react'
+import { useRef, useState, useCallback, useEffect } from 'react'
+import { X, Maximize2, ExternalLink } from 'lucide-react'
 import { useSongInPlayerStore } from '@/stores/useSongInPlayerStore'
 import { generateSongCover } from '@/utils/generateSongCover'
 
-// 迷你悬浮播放条（后台播放）
-export function MiniPlayer({ onRestore, onClose }) {
+// 弹出桌面独立窗口（可脱离浏览器拖动）
+function openDesktopPlayer(songInPlayer) {
+  const imgSrc = songInPlayer?.cover || ''
+  const bgColor = songInPlayer ? generateSongCover(songInPlayer.newId) : '#333'
+  const name = (songInPlayer?.name || '未在播放').replace(/</g, '&lt;').replace(/'/g, "\\'")
+  const artist = (songInPlayer?.artists?.map(a => a.name).join('/') || '').replace(/</g, '&lt;')
+
+  const w = 360, h = 150
+  const pip = window.open('', 'EchoBeats_Desktop',
+    `width=${w},height=${h},left=${window.screen.width - w - 40},top=${window.screen.height - h - 120},resizable=yes,alwaysOnTop=yes`)
+
+  if (!pip) return null
+
+  pip.document.write(`
+    <!DOCTYPE html>
+    <html><head><meta charset="utf-8"><title>EchoBeats - ${name}</title>
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{
+        background:#181818;color:#f0f0f0;font-family:-apple-system,sans-serif;
+        display:flex;align-items:center;justify-content:center;height:100vh;
+        overflow:hidden;cursor:default;-webkit-app-region:drag;
+      }
+      .player{
+        display:flex;align-items:center;gap:12px;padding:14px 18px;
+        background:rgba(0,0,0,0.5);border-radius:12px;border:1px solid rgba(255,165,0,0.25);
+        width:100%;max-width:340px;
+      }
+      .cover{width:60px;height:60px;border-radius:10px;flex-shrink:0;
+        ${imgSrc ? `background:url(${imgSrc}) center/cover;` : `background:${bgColor};`}}
+      .info{flex:1;min-width:0}
+      .name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .artist{font-size:12px;color:#8c8c8c;margin-top:3px}
+      .time{font-size:12px;color:#8c8c8c;margin-top:6px;font-variant-numeric:tabular-nums}
+      .hint{font-size:11px;color:rgba(255,255,255,0.15);text-align:center;margin-top:10px;-webkit-app-region:no-drag}
+      button{
+        -webkit-app-region:no-drag;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);
+        border-radius:6px;color:#8c8c8c;cursor:pointer;padding:5px 10px;font-size:12px;
+        transition:all 0.15s;
+      }
+      button:hover{color:#fff;background:rgba(255,255,255,0.15);border-color:rgba(255,165,0,0.3)}
+      button.play-btn{background:rgba(255,165,0,0.15);border-color:rgba(255,165,0,0.3);color:#FFA500}
+      button.play-btn:hover{background:rgba(255,165,0,0.25)}
+    </style></head>
+    <body>
+      <div class="player">
+        <div class="cover"></div>
+        <div class="info">
+          <div class="name">${name}</div>
+          <div class="artist">${artist}</div>
+          <div class="time" id="time">--:-- / --:--</div>
+        </div>
+      </div>
+      <div class="hint">拖动标题栏移动 · 双击关闭</div>
+      <script>
+        let closed = false;
+        function fmt(s) { const m = Math.floor(s/60), sec = String(Math.floor(s%60)).padStart(2,'0'); return m+':'+sec; }
+        setInterval(() => {
+          try {
+            const audios = window.opener.document.querySelectorAll('audio');
+            if (!audios.length) return;
+            const a = audios[0];
+            const cur = a.currentTime || 0, dur = a.duration || 0;
+            document.getElementById('time').textContent = fmt(cur) + ' / ' + fmt(dur);
+            document.title = (a.paused ? '⏸ ' : '▶ ') + '${name}';
+          } catch(e) {}
+        }, 500);
+        window.onbeforeunload = () => { closed = true; };
+        window.ondblclick = () => { window.close(); };
+      </script>
+    </body></html>`)
+
+  return pip
+}
+
+// 内页迷你悬浮播放条
+function MiniPlayerInner({ onRestore, onClose, onPopout }) {
   const songInPlayer = useSongInPlayerStore((s) => s.songInPlayer)
   if (!songInPlayer) return null
   const coverStyle = songInPlayer.cover
@@ -12,12 +87,11 @@ export function MiniPlayer({ onRestore, onClose }) {
     : { backgroundColor: generateSongCover(songInPlayer.newId) }
   return (
     <div style={{
-      position: 'fixed', bottom: 74, right: 20, zIndex: 1100,
       background: 'rgba(18, 18, 18, 0.95)', backdropFilter: 'blur(16px)',
       borderRadius: 10, border: '1px solid rgba(255,165,0,0.3)',
       padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 10,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.5)', maxWidth: 320,
-      animation: 'slideUp 0.3s ease-out',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.5)', maxWidth: 380, width: '100%',
+      userSelect: 'none',
     }}>
       <div style={{ width: 42, height: 42, borderRadius: 8, flexShrink: 0, ...coverStyle }} />
       <div style={{ minWidth: 0, flex: 1 }}>
@@ -28,168 +102,74 @@ export function MiniPlayer({ onRestore, onClose }) {
           {songInPlayer.artists?.map(a => a.name).join('/') || '未知'}
         </div>
       </div>
-      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+        <button onClick={onPopout} title="弹到桌面独立窗口" style={{
+          background: 'rgba(255,165,0,0.1)', border: '1px solid rgba(255,165,0,0.2)', borderRadius: 6,
+          color: '#FFA500', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center',
+          fontWeight: 600, fontSize: 11, gap: 3,
+        }}>
+          <ExternalLink size={13} /> 桌面
+        </button>
         <button onClick={onRestore} title="恢复播放器" style={{
           background: 'none', border: 'none', color: '#FFA500', cursor: 'pointer', padding: 4,
           display: 'flex', alignItems: 'center',
-        }}><Maximize2 size={16} /></button>
+        }}><Maximize2 size={15} /></button>
         <button onClick={onClose} title="关闭" style={{
           background: 'none', border: 'none', color: '#8c8c8c', cursor: 'pointer', padding: 4,
           display: 'flex', alignItems: 'center',
-        }}><X size={16} /></button>
+        }}><X size={15} /></button>
       </div>
     </div>
   )
 }
 
-// Canvas 画中画 Hook
-export function useAudioPiP() {
+export function MiniPlayer({ onRestore, onClose }) {
   const songInPlayer = useSongInPlayerStore((s) => s.songInPlayer)
-  const [isPiPActive, setIsPiPActive] = useState(false)
-  const [isMini, setIsMini] = useState(false)
-  const canvasRef = useRef(null)
-  const pipWindowRef = useRef(null)
-  const animRef = useRef(null)
-  const coverImgRef = useRef(null)
-  const currentTimeRef = useRef(0)
-  const audioRef = useRef(null)
+  const desktopRef = useRef(null)
 
-  // 同步播放时间
-  useEffect(() => {
-    const checkAudio = setInterval(() => {
-      const audios = document.querySelectorAll('audio')
-      if (audios.length > 0 && audios[0] !== audioRef.current) {
-        audioRef.current = audios[0]
-      }
-      if (audioRef.current) {
-        currentTimeRef.current = audioRef.current.currentTime || 0
-      }
-    }, 200)
-    return () => clearInterval(checkAudio)
-  }, [])
-
-  const drawFrame = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    const w = canvas.width
-    const h = canvas.height
-    const currentTime = currentTimeRef.current
-    const duration = audioRef.current?.duration || 0
-
-    ctx.fillStyle = '#0d0d0d'
-    ctx.fillRect(0, 0, w, h)
-
-    // Cover
-    const coverSize = Math.min(h * 0.45, 100)
-    const coverX = (w - coverSize) / 2
-    const coverY = 16
-    if (coverImgRef.current) {
-      ctx.save()
-      ctx.beginPath()
-      try { ctx.roundRect(coverX, coverY, coverSize, coverSize, 10) } catch (_) {
-        ctx.rect(coverX, coverY, coverSize, coverSize)
-      }
-      ctx.clip()
-      ctx.drawImage(coverImgRef.current, coverX, coverY, coverSize, coverSize)
-      ctx.restore()
-    } else {
-      ctx.fillStyle = generateSongCover(songInPlayer?.newId || '0')
-      ctx.beginPath()
-      try { ctx.roundRect(coverX, coverY, coverSize, coverSize, 10) } catch (_) {
-        ctx.rect(coverX, coverY, coverSize, coverSize)
-      }
-      ctx.fill()
+  const handlePopout = useCallback(() => {
+    if (desktopRef.current && !desktopRef.current.closed) {
+      desktopRef.current.focus()
+      return
     }
-
-    // Visualizer
-    const barCount = 14
-    const barWidth = (w - 36) / barCount - 2
-    const barBaseY = coverY + coverSize + 22
-    const t = Date.now()
-    ctx.fillStyle = '#FFA500'
-    for (let i = 0; i < barCount; i++) {
-      const freq = Math.sin(t * 0.003 + i * 0.4) * 0.5 + 0.5
-      const amp = Math.sin(t * 0.007 + i * 0.7) * 0.3 + 0.7
-      const bh = (freq * amp * 24) + 3
-      const x = 18 + i * (barWidth + 2)
-      ctx.fillRect(x, barBaseY - bh, barWidth, bh)
-    }
-
-    // Info
-    ctx.fillStyle = '#f0f0f0'
-    ctx.font = '600 13px -apple-system, sans-serif'
-    ctx.textAlign = 'center'
-    const name = songInPlayer?.name || '未在播放'
-    ctx.fillText(name.length > 18 ? name.slice(0, 17) + '...' : name, w / 2, barBaseY + 16)
-
-    ctx.fillStyle = '#8c8c8c'
-    ctx.font = '11px -apple-system, sans-serif'
-    const artist = songInPlayer?.artists?.map(a => a.name).join('/') || ''
-    ctx.fillText(artist.length > 22 ? artist.slice(0, 21) + '...' : artist, w / 2, barBaseY + 32)
-
-    // Progress
-    const progress = duration > 0 ? currentTime / duration : 0
-    ctx.fillStyle = 'rgba(255,255,255,0.1)'
-    ctx.fillRect(18, h - 14, w - 36, 2)
-    ctx.fillStyle = '#FFA500'
-    ctx.fillRect(18, h - 14, (w - 36) * progress, 2)
-
-    animRef.current = requestAnimationFrame(drawFrame)
+    desktopRef.current = openDesktopPlayer(songInPlayer)
   }, [songInPlayer])
 
-  // Load cover
+  // 切歌时更新桌面窗口
   useEffect(() => {
-    if (!songInPlayer) return
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    if (songInPlayer.cover) {
-      img.src = songInPlayer.cover
-    } else {
-      const c = document.createElement('canvas')
-      c.width = 100; c.height = 100
-      c.getContext('2d').fillStyle = generateSongCover(songInPlayer.newId)
-      c.getContext('2d').fillRect(0, 0, 100, 100)
-      img.src = c.toDataURL()
+    if (desktopRef.current && !desktopRef.current.closed) {
+      desktopRef.current.close()
+      desktopRef.current = openDesktopPlayer(songInPlayer)
     }
-    img.onload = () => { coverImgRef.current = img }
-    img.onerror = () => { coverImgRef.current = null }
   }, [songInPlayer?.newId])
 
-  const startPiP = useCallback(() => {
-    // 尝试原生 PiP
-    if (document.pictureInPictureEnabled && canvasRef.current) {
-      const canvas = canvasRef.current
-      canvas.width = 300
-      canvas.height = 240
-      if (animRef.current) cancelAnimationFrame(animRef.current)
-      animRef.current = requestAnimationFrame(drawFrame)
-      canvas.requestPictureInPicture().then((pw) => {
-        pipWindowRef.current = pw
-        setIsPiPActive(true)
-        pw.addEventListener('leave', () => {
-          pipWindowRef.current = null
-          setIsPiPActive(false)
-          if (animRef.current) cancelAnimationFrame(animRef.current)
-        }, { once: true })
-      }).catch(() => {
-        // Native PiP failed, don't do anything (user can use mini player)
-      })
+  // 卸载时关闭桌面窗口
+  useEffect(() => {
+    return () => {
+      if (desktopRef.current && !desktopRef.current.closed) {
+        desktopRef.current.close()
+      }
     }
-  }, [drawFrame])
-
-  const stopPiP = useCallback(() => {
-    if (pipWindowRef.current && document.pictureInPictureElement) {
-      document.exitPictureInPicture().catch(() => {})
-    }
-    pipWindowRef.current = null
-    setIsPiPActive(false)
-    if (animRef.current) cancelAnimationFrame(animRef.current)
   }, [])
 
-  const toggleMini = useCallback(() => {
-    setIsMini(m => !m)
-  }, [])
+  return (
+    <div style={{
+      position: 'fixed', bottom: 74, right: 20, zIndex: 1100,
+      animation: 'slideUp 0.3s ease-out',
+    }}>
+      <MiniPlayerInner onRestore={onRestore} onClose={onClose} onPopout={handlePopout} />
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
+    </div>
+  )
+}
 
-  return { isPiPActive, isMini, startPiP, stopPiP, toggleMini, canvasRef, pipCanvas: canvasRef }
+export function useAudioPiP() {
+  const [isMini, setIsMini] = useState(false)
+  const toggleMini = useCallback(() => setIsMini(m => !m), [])
+  return { isMini, toggleMini }
 }
