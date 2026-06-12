@@ -87,10 +87,26 @@ async function main() {
   console.log(`  Querying ${allArtistNames.length} artists (${artistList.length} from API + ${extraNames.size} extra)`)
   const artistResults = await batchFetch(allArtistNames, async (name) => {
     const encoded = encodeURIComponent(name)
-    const data = await fetchJSON(`/api/songs-of-artist/${encoded}`)
-    if (data.songs && data.songs.length > 0) {
-      return { name, songs: data.songs }
-    }
+    // 先尝试艺人歌曲 API
+    try {
+      const data = await fetchJSON(`/api/songs-of-artist/${encoded}`)
+      if (data.songs && data.songs.length > 0) {
+        return { name, songs: data.songs }
+      }
+    } catch (_) { /* fallback to search */ }
+
+    // 降级到搜索 API（覆盖未收录进艺人库但有歌曲的艺人）
+    try {
+      const searchData = await fetchJSON(`/api/ss?keyword=${encoded}`)
+      if (searchData.success && Array.isArray(searchData.data) && searchData.data.length > 0) {
+        // 过滤：只保留艺人名匹配的歌曲
+        const matched = searchData.data.filter(s =>
+          s.artists?.some(a => a.name === name)
+        )
+        if (matched.length > 0) return { name, songs: matched }
+      }
+    } catch (_) { /* both failed */ }
+
     return { name, songs: [] }
   })
 
