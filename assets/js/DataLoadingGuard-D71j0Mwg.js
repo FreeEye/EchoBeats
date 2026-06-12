@@ -1,0 +1,1 @@
+import{t as e}from"./react-vendor-Baezdnvl.js";import{t}from"./index-DLl3CbMv.js";var n=e();function r({loading:e,children:r}){return e?(0,n.jsx)(t,{kind:`data`}):r}export{r as t};
