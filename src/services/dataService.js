@@ -9,13 +9,14 @@ async function fetchAPI(path) {
   return res.json()
 }
 
-// 获取歌曲播放源 URL（优先静态缓存，其次 API）
+// 获取歌曲播放源 URL（优先静态缓存，其次 API，多级降级）
 export async function getSongSource(newId) {
   // 1. 优先从静态数据中获取预解析的播放 URL（GitHub Pages）
+  let staticUrl = null
   if (!isDev) {
     try {
       const data = await getStaticData()
-      if (data.songSources?.[newId]) return data.songSources[newId]
+      if (data.songSources?.[newId]) staticUrl = data.songSources[newId]
     } catch (_) { /* 静态数据不可用 */ }
   }
 
@@ -24,7 +25,7 @@ export async function getSongSource(newId) {
     const res = await fetch(`/api/p/${newId}`)
     if (res.ok) {
       const data = await res.json()
-      if (data.success) return data.data
+      if (data.success && data.data) return data.data
     }
   } catch (_) { /* 相对路径失败 */ }
 
@@ -33,9 +34,12 @@ export async function getSongSource(newId) {
     const res = await fetch(`${API_BASE}/api/p/${newId}`)
     if (res.ok) {
       const data = await res.json()
-      if (data.success) return data.data
+      if (data.success && data.data) return data.data
     }
   } catch (_) { /* 上游也失败 */ }
+
+  // 4. 如果 API 都失败了，返回静态缓存（即使可能过期）
+  if (staticUrl) return staticUrl
 
   throw new Error('Failed to get song source')
 }

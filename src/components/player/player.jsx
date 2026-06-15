@@ -28,6 +28,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import usePositionedMessage from '@/hooks/usePositionedMessage'
 import { useListenlistOpenStore } from '@/stores/useListenlistOpenStore'
 import { useListenlistStore } from '@/stores/useListenlistStore'
+import { usePlayModeStore } from '@/stores/usePlayModeStore'
 import { useSongInPlayerStore } from '@/stores/useSongInPlayerStore'
 import { useAudioTimeStore } from '@/stores/useAudioTimeStore'
 import { useLyricsStore } from '@/stores/useLyricsStore'
@@ -57,7 +58,8 @@ function Player() {
   const [paused, setPaused] = useState(true)
   const [playSignal, setPlaySignal] = useState(false)
   const [playerMessage, setPlayerMessage] = useState('')
-  const [playMode, setPlayMode] = useState('order')
+  const playMode = usePlayModeStore((s) => s.playMode)
+  const setPlayMode = usePlayModeStore((s) => s.setPlayMode)
   const [volume, setVolume] = useState(
     localStorage.getItem('volume')
       ? Number(localStorage.getItem('volume'))
@@ -115,7 +117,7 @@ function Player() {
             setSourceGettingStatus('failed')
             setPlayerMessage('Failed to get source.')
             message.info(`无法播放 <${songInPlayer.name}>`)
-            onAudioEnded()
+            // 不再自动切歌，保持当前歌曲让用户重试
           })
       }
     }
@@ -155,21 +157,48 @@ function Player() {
     if (!retryRef.current && songInPlayer?.newId) {
       retryRef.current = true
       setPlayerMessage('Retrying source...')
-      fetch(`https://tonzhon.whamon.com/api/p/${songInPlayer.newId}`)
-        .then((res) => res.json())
-        .then(({ success, data }) => {
+
+      async function tryFetchSource() {
+        // 1. 先尝试上游 API 直接请求
+        try {
+          const res = await fetch(`https://tonzhon.whamon.com/api/p/${songInPlayer.newId}`)
+          const { success, data } = await res.json()
           if (success && data) {
             setSongSource(data)
             setMediaLoadingStatus('')
             return
           }
-          throw new Error('Retry failed')
-        })
-        .catch(() => {
-          setMediaLoadingStatus('error')
-          setPlayerMessage('Media Load Error')
-          retryRef.current = false
-        })
+        } catch (_) { /* 继续尝试其他方式 */ }
+
+        // 2. 降级到相对路径 API（开发/Vercel 代理）
+        try {
+          const res = await fetch(`/api/p/${songInPlayer.newId}`)
+          if (res.ok) {
+            const json = await res.json()
+            if (json.success && json.data) {
+              setSongSource(json.data)
+              setMediaLoadingStatus('')
+              return
+            }
+          }
+        } catch (_) { /* 继续尝试 */ }
+
+        // 3. 通过 getSongSource 再试一次（会尝试所有降级路径）
+        try {
+          const src = await getSongSource(songInPlayer.newId)
+          if (src) {
+            setSongSource(src)
+            setMediaLoadingStatus('')
+            return
+          }
+        } catch (_) { /* 所有尝试都失败 */ }
+
+        setMediaLoadingStatus('error')
+        setPlayerMessage('Media Load Error')
+        retryRef.current = false
+      }
+
+      tryFetchSource()
     } else {
       setMediaLoadingStatus('error')
       setPlayerMessage('Media Load Error')

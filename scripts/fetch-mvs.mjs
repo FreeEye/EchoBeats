@@ -76,6 +76,9 @@ const SONGS = [
   ["张碧晨", "凉凉"], ["张碧晨", "年轮"],
   // === BEYOND ===
   ["BEYOND", "海阔天空"], ["BEYOND", "真的爱你"], ["BEYOND", "光辉岁月"],
+  ["BEYOND", "大地"], ["BEYOND", "喜欢你"], ["BEYOND", "不再犹豫"],
+  ["BEYOND", "情人"], ["BEYOND", "冷雨夜"], ["BEYOND", "Amani"],
+  ["BEYOND", "长城"], ["BEYOND", "灰色轨迹"],
   // === 胡彦斌 ===
   ["胡彦斌", "红颜"], ["胡彦斌", "月光"],
   // === 赵雷 ===
@@ -134,6 +137,8 @@ const SONGS = [
   ["光良", "童话"], ["光良", "第一次"],
   // === 伍佰 ===
   ["伍佰", "挪威的森林"], ["伍佰", "你是我的花朵"],
+  ["伍佰", "突然的自我"], ["伍佰", "浪人情歌"], ["伍佰", "白鸽"],
+  ["伍佰", "Last Dance"], ["伍佰", "世界第一等"],
   // === 陶喆 ===
   ["陶喆", "爱很简单"], ["陶喆", "就是爱你"],
   // === 张惠妹 ===
@@ -158,12 +163,18 @@ const SONGS = [
   ["刘若英", "后来"], ["刘若英", "为爱痴狂"],
   // === 苏打绿 ===
   ["苏打绿", "小情歌"], ["苏打绿", "我好想你"],
+  // === 飞儿乐团 ===
+  ["飞儿乐团", "我们的爱"], ["飞儿乐团", "Lydia"], ["飞儿乐团", "Fly Away"],
+  ["飞儿乐团", "你的微笑"], ["飞儿乐团", "月牙湾"], ["飞儿乐团", "千年之恋"],
   // === 郑钧 ===
   ["郑钧", "灰姑娘"], ["郑钧", "回到拉萨"],
   // === 刀郎 ===
   ["刀郎", "2002年的第一场雪"], ["刀郎", "罗刹海市"],
   // === 叶丽仪 ===
   ["叶丽仪", "上海滩"],
+  // === 叶倩文 ===
+  ["叶倩文", "祝福"], ["叶倩文", "潇洒走一回"], ["叶倩文", "选择"],
+  ["叶倩文", "明月心"], ["叶倩文", "曾经心痛"], ["叶倩文", "伤逝"],
   // === International ===
   ["Taylor Swift", "Love Story"], ["Taylor Swift", "Blank Space"], ["Taylor Swift", "Shake It Off"],
   ["Alan Walker", "Faded"], ["Alan Walker", "Alone"],
@@ -319,14 +330,22 @@ async function main() {
   console.log(`\n  New MVs found: ${totalFound}`)
   console.log(`  Total MVs (seed + new): ${found.length}`)
 
-  // 第 3 步：搜索 MV 合集
+  // 第 3 步：搜索 MV 合集（真正的多P合集，每个分P作为独立MV）
+  async function getVideoPages(bvid) {
+    try {
+      const data = await fetchJSON(`https://api.bilibili.com/x/player/pagelist?bvid=${bvid}`)
+      if (data.code === 0 && Array.isArray(data.data)) return data.data
+    } catch (_) { /* ignore */ }
+    return []
+  }
+
   const COLLECTION_QUERIES = [
     "MV合集 经典歌曲",
     "经典歌曲合集 MV",
     "华语经典MV合集",
     "英文经典MV合集",
   ]
-  console.log(`\nStep 3: Searching for MV collections...`)
+  console.log(`\nStep 3: Searching for MV collections (multi-page)...`)
   let collectionFound = 0
 
   for (const query of COLLECTION_QUERIES) {
@@ -336,15 +355,41 @@ async function main() {
       const html = await fetchHTML(searchUrl)
       const bvs = extractBVs(html).filter(bv => !foundBvids.has(bv))
 
-      for (const bvid of bvs.slice(0, 3)) {
+      for (const bvid of bvs.slice(0, 5)) {
         await new Promise(r => setTimeout(r, 200))
         try {
           const data = await fetchJSON(`${BILIBILI_API}?bvid=${bvid}`)
           if (data.code !== 0) continue
           const vid = data.data
-          const mins = Math.floor(vid.duration / 60)
-          const secs = vid.duration % 60
-          if (vid.duration > 180) {
+          if (vid.duration < 180) continue
+
+          // 检查是否为真正的合集（多个分P）
+          const pages = await getVideoPages(bvid)
+          if (pages.length > 1) {
+            // 真正合集：将每个分P作为独立MV添加
+            for (const page of pages) {
+              const pageMins = Math.floor(page.duration / 60)
+              const pageSecs = page.duration % 60
+              found.push({
+                bvid,
+                page: page.page,
+                cid: page.cid,
+                title: `${page.part}`,
+                author: vid.owner?.name || '',
+                duration: `${pageMins}:${pageSecs.toString().padStart(2, '0')}`,
+                play: vid.stat?.view || 0,
+                pic: (vid.pic || '').replace(/^http:/, 'https:'),
+                artist: '合集',
+                collectionTitle: vid.title,
+              })
+              collectionFound++
+              console.log(`    -> Page ${page.page}: ${page.part.substring(0, 50)}`)
+            }
+            foundBvids.add(bvid)
+          } else {
+            // 单P超长视频，也加入
+            const mins = Math.floor(vid.duration / 60)
+            const secs = vid.duration % 60
             found.push({
               bvid,
               title: vid.title,
@@ -366,6 +411,56 @@ async function main() {
     await new Promise(r => setTimeout(r, 500))
   }
   console.log(`  Collection MVs found: ${collectionFound}`)
+
+  // 第 4 步：搜索超长单 MV（演唱会、现场等）
+  const LONG_MV_QUERIES = [
+    "演唱会 完整版 MV",
+    "现场 Live 完整版",
+    "音乐现场 完整版",
+    "经典演唱会 高清",
+    "live concert full",
+  ]
+  console.log(`\nStep 4: Searching for long individual MVs...`)
+  let longFound = 0
+
+  for (const query of LONG_MV_QUERIES) {
+    try {
+      const searchUrl = `${BILIBILI_SEARCH}?keyword=${encodeURIComponent(query)}`
+      console.log(`  Searching: ${query}`)
+      const html = await fetchHTML(searchUrl)
+      const bvs = extractBVs(html).filter(bv => !foundBvids.has(bv))
+
+      for (const bvid of bvs.slice(0, 3)) {
+        await new Promise(r => setTimeout(r, 200))
+        try {
+          const data = await fetchJSON(`${BILIBILI_API}?bvid=${bvid}`)
+          if (data.code !== 0) continue
+          const vid = data.data
+          // 超长视频：超过10分钟
+          if (vid.duration > 600) {
+            const mins = Math.floor(vid.duration / 60)
+            const secs = vid.duration % 60
+            found.push({
+              bvid,
+              title: vid.title,
+              author: vid.owner?.name || '',
+              duration: `${mins}:${secs.toString().padStart(2, '0')}`,
+              play: vid.stat?.view || 0,
+              pic: (vid.pic || '').replace(/^http:/, 'https:'),
+              artist: '现场'
+            })
+            foundBvids.add(bvid)
+            longFound++
+            console.log(`    -> FOUND: ${bvid} (${vid.title.substring(0, 60)}) [${mins}:${secs.toString().padStart(2, '0')}]`)
+          }
+        } catch (_) { /* skip */ }
+      }
+    } catch (e) {
+      console.log(`    -> Error: ${e.message}`)
+    }
+    await new Promise(r => setTimeout(r, 500))
+  }
+  console.log(`  Long MVs found: ${longFound}`)
   console.log(`  Total MVs: ${found.length}`)
 
   writeFileSync(`${OUT}/mvs.json`, JSON.stringify(found, null, 2))

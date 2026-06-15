@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, useRef } from 'react'
-import { Film, Play, X, Minimize2, Maximize2, ExternalLink, PictureInPicture2 } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { Film, Play, X, Minimize2, Maximize2 } from 'lucide-react'
 import { Button, Tabs } from 'antd'
 import allMVs from '@/data/mvs.json'
 import { generateSongCover } from '@/utils/generateSongCover'
@@ -9,6 +9,7 @@ const MV_PAGE_SIZE = 24
 function MVCard({ mv, onPlay }) {
   const [imgError, setImgError] = useState(false)
   const fallbackBg = generateSongCover(mv.bvid || mv.title)
+  const cardKey = mv.page ? `${mv.bvid}_p${mv.page}` : mv.bvid
   return (
     <div
       className="mv-card"
@@ -116,24 +117,11 @@ function MVCard({ mv, onPlay }) {
   )
 }
 
-// 内嵌 MV 播放器（支持后台播放、画中画）
-function MVPlayer({ mv, onClose, onMinimize, onPiP }) {
+// 内嵌 MV 播放器（支持后台播放）
+function MVPlayer({ mv, onClose, onMinimize }) {
   if (!mv) return null
-  const bilibiliUrl = `https://www.bilibili.com/video/${mv.bvid}`
-  const handlePiP = () => {
-    const w = 480, h = 300
-    const left = window.screen.width - w - 40
-    const top = window.screen.height - h - 80
-    const pip = window.open(
-      `https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&high_quality=1&page=1`,
-      'EchoBeats_MV_PiP',
-      `width=${w},height=${h},left=${left},top=${top},resizable=yes,alwaysOnTop=yes`
-    )
-    if (pip) {
-      pip.document.title = mv.title
-      onPiP?.()
-    }
-  }
+  const page = mv.page || 1
+  const playerUrl = `https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&high_quality=1&as_wide=1&page=${page}`
   return (
     <div style={{
       background: '#0a0a0a',
@@ -148,6 +136,11 @@ function MVPlayer({ mv, onClose, onMinimize, onPiP }) {
         padding: '10px 16px', background: '#111',
       }}>
         <div style={{ minWidth: 0, flex: 1 }}>
+          {mv.collectionTitle && (
+            <div style={{ fontSize: 11, color: '#FFA500', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {mv.collectionTitle}
+            </div>
+          )}
           <div style={{ fontSize: 14, fontWeight: 600, color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {mv.title}
           </div>
@@ -156,26 +149,6 @@ function MVPlayer({ mv, onClose, onMinimize, onPiP }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, flexShrink: 0, marginLeft: 12 }}>
-          <a href={bilibiliUrl} target="_blank" rel="noopener noreferrer"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 4, color: '#FFA500', fontSize: 12,
-              textDecoration: 'none', padding: '4px 10px', borderRadius: 6,
-              border: '1px solid rgba(255,165,0,0.3)', transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,165,0,0.1)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <ExternalLink size={13} /> B站观看
-          </a>
-          <button onClick={handlePiP} title="画中画播放"
-            style={{
-              background: 'none', border: '1px solid rgba(255,165,0,0.3)', borderRadius: 6,
-              color: '#FFA500', cursor: 'pointer', padding: '4px 8px', display: 'flex',
-              alignItems: 'center', transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,165,0,0.1)' }}>
-            <PictureInPicture2 size={14} />
-          </button>
           <button
             onClick={onMinimize}
             title="最小化（继续后台播放）"
@@ -207,7 +180,7 @@ function MVPlayer({ mv, onClose, onMinimize, onPiP }) {
       {/* 播放器 */}
       <div style={{ position: 'relative', paddingTop: '56.25%' }}>
         <iframe
-          src={`https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&high_quality=1&as_wide=1&page=1`}
+          src={playerUrl}
           style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none',
           }}
@@ -223,6 +196,8 @@ function MVPlayer({ mv, onClose, onMinimize, onPiP }) {
 // Mini 后台播放栏
 function MiniPlayer({ mv, onRestore, onClose }) {
   if (!mv) return null
+  const page = mv.page || 1
+  const miniUrl = `https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&page=${page}`
   return (
     <div style={{
       position: 'fixed', bottom: 74, right: 20, zIndex: 1000,
@@ -234,7 +209,7 @@ function MiniPlayer({ mv, onRestore, onClose }) {
     }}>
       <div style={{ width: 36, height: 20, borderRadius: 3, overflow: 'hidden', flexShrink: 0, background: '#000' }}>
         <iframe
-          src={`https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&page=1`}
+          src={miniUrl}
           style={{ width: '100%', height: '100%', border: 'none', pointerEvents: 'none' }}
           allow="autoplay"
           referrerPolicy="no-referrer"
@@ -366,7 +341,7 @@ export default function MVPage() {
       <div className="panel">
         {/* 内嵌播放器 */}
         <div ref={playerRef}>
-          <MVPlayer mv={playingMV} onClose={handleClose} onMinimize={handleMinimize} onPiP={() => handleMinimize()} />
+          <MVPlayer mv={playingMV} onClose={handleClose} onMinimize={handleMinimize} />
         </div>
 
         <Tabs
@@ -384,7 +359,7 @@ export default function MVPage() {
           }}
         >
           {displayed.map((mv) => (
-            <MVCard key={mv.bvid} mv={mv} onPlay={handlePlay} />
+            <MVCard key={mv.page ? `${mv.bvid}_p${mv.page}` : mv.bvid} mv={mv} onPlay={handlePlay} />
           ))}
         </div>
 
