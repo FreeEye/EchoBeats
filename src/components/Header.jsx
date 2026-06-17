@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Music, ListMusic } from 'lucide-react'
+import { Music } from 'lucide-react'
 import SearchBar from './SearchBar'
 
 const tabs = [
@@ -79,36 +79,6 @@ export default function Header() {
         <div style={{ flex: 1, maxWidth: 500 }}>
           <SearchBar />
         </div>
-        <Link
-          to="/playlists"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            color: currentPath === '/playlists' ? '#FFA500' : '#bfbfbf',
-            fontSize: 14,
-            fontWeight: 500,
-            textDecoration: 'none',
-            padding: '6px 14px',
-            borderRadius: 8,
-            transition: 'all 0.2s',
-            flexShrink: 0,
-            background: currentPath === '/playlists' ? 'rgba(255,165,0,0.1)' : 'transparent',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = '#FFA500'
-            e.currentTarget.style.background = 'rgba(255,165,0,0.1)'
-          }}
-          onMouseLeave={(e) => {
-            if (currentPath !== '/playlists') {
-              e.currentTarget.style.color = '#bfbfbf'
-              e.currentTarget.style.background = 'transparent'
-            }
-          }}
-        >
-          <ListMusic size={18} />
-          <span>我的歌单</span>
-        </Link>
       </div>
 
       {/* Bottom row: Navigation tabs */}

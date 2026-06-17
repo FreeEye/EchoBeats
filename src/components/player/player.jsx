@@ -106,19 +106,25 @@ function Player() {
     } else {
       if (songInPlayer?.newId && playSignal) {
         audioRef.current.pause()
-        setSourceGettingStatus('getting')
-        setPlayerMessage('Getting source...')
-        getSongSource(songInPlayer.newId)
-          .then((data) => {
-            setSongSource(data)
-            setSourceGettingStatus('success')
-          })
-          .catch(() => {
-            setSourceGettingStatus('failed')
-            setPlayerMessage('Failed to get source.')
-            message.info(`无法播放 <${songInPlayer.name}>`)
-            // 不再自动切歌，保持当前歌曲让用户重试
-          })
+        // 网易云来源的歌曲自带 source，直接使用
+        if (songInPlayer.source) {
+          setSongSource(songInPlayer.source)
+          setSourceGettingStatus('success')
+        } else {
+          setSourceGettingStatus('getting')
+          setPlayerMessage('Getting source...')
+          getSongSource(songInPlayer.newId)
+            .then((data) => {
+              setSongSource(data)
+              setSourceGettingStatus('success')
+            })
+            .catch(() => {
+              setSourceGettingStatus('failed')
+              setPlayerMessage('Failed to get source.')
+              message.info(`无法播放 <${songInPlayer.name}>`)
+              // 不再自动切歌，保持当前歌曲让用户重试
+            })
+        }
       }
     }
   }, [songSource, playSignal, songInPlayer?.newId])

@@ -11,6 +11,7 @@ const providerConfig = {
   qq: { label: 'QQ音乐', color: '#1DB954' },
   kugou: { label: '酷狗音乐', color: '#2B8FFF' },
   local: { label: '本地匹配', color: '#722ED1' },
+  netease: { label: '网易云音乐', color: '#C62F2F' },
 }
 
 function SearchResult({ result, provider }) {

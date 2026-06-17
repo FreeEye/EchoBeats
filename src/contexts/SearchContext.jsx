@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { getSongPool, clientSearch, fetchAPIWithFallback } from '@/services/dataService'
+import { searchNetease } from '@/services/neteaseService'
 
 const SearchContext = createContext()
 
@@ -55,10 +56,11 @@ export const SearchProvider = ({ children }) => {
     let results = {}
     const encoded = encodeURIComponent(keyword)
 
-    const [ssRes, miguRes, kRes] = await Promise.allSettled([
+    const [ssRes, miguRes, kRes, neteaseRes] = await Promise.allSettled([
       fetchAPIWithFallback(`/api/ss?keyword=${encoded}`),
       fetchAPIWithFallback(`/api/s/m/${encoded}`),
       fetchAPIWithFallback(`/api/s/k/${encoded}`),
+      searchNetease(keyword),
     ])
 
     if (ssRes.status === 'fulfilled' && ssRes.value?.success && Array.isArray(ssRes.value.data) && ssRes.value.data.length > 0) {
@@ -69,6 +71,9 @@ export const SearchProvider = ({ children }) => {
     }
     if (kRes.status === 'fulfilled' && kRes.value?.success && Array.isArray(kRes.value.songs) && kRes.value.songs.length > 0) {
       results.kugou = { searchSuccess: true, data: { songs: kRes.value.songs, totalCount: kRes.value.songs.length } }
+    }
+    if (neteaseRes.status === 'fulfilled' && Array.isArray(neteaseRes.value) && neteaseRes.value.length > 0) {
+      results.netease = { searchSuccess: true, data: { songs: neteaseRes.value, totalCount: neteaseRes.value.length } }
     }
 
     // 始终执行客户端搜索，补充服务端结果

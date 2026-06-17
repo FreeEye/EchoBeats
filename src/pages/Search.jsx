@@ -69,7 +69,60 @@ export default function Search() {
             没有找到相关结果
           </div>
           <div style={{ color: '#8c8c8c', fontSize: 14 }}>
-            试试其他关键词搜索吧
+            试试以下全网搜索
+          </div>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <a
+              href={`https://search.bilibili.com/all?keyword=${encodeURIComponent(keyword ? decodeURIComponent(keyword) : '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: '8px 20px',
+                borderRadius: 8,
+                background: 'rgba(0, 174, 236, 0.15)',
+                color: '#00AECC',
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 500,
+                border: '1px solid rgba(0, 174, 236, 0.3)',
+              }}
+            >
+              在 B站 搜索
+            </a>
+            <a
+              href={`https://music.163.com/#/search/m/?s=${encodeURIComponent(keyword ? decodeURIComponent(keyword) : '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: '8px 20px',
+                borderRadius: 8,
+                background: 'rgba(198, 47, 47, 0.15)',
+                color: '#C62F2F',
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 500,
+                border: '1px solid rgba(198, 47, 47, 0.3)',
+              }}
+            >
+              在 网易云音乐 搜索
+            </a>
+            <a
+              href={`https://www.baidu.com/s?wd=${encodeURIComponent((keyword ? decodeURIComponent(keyword) : '') + ' 歌曲')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: '8px 20px',
+                borderRadius: 8,
+                background: 'rgba(255, 165, 0, 0.1)',
+                color: '#FFA500',
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 500,
+                border: '1px solid rgba(255, 165, 0, 0.3)',
+              }}
+            >
+              在 百度 搜索
+            </a>
           </div>
         </div>
       )}

@@ -35,6 +35,47 @@ const SEED_BVS = [
   { bvid: "BV1mW411k7B6", artist: "BEYOND", expectedTitle: "光辉岁月" },
   // Taylor Swift
   { bvid: "BV1jE421H7sT", artist: "Taylor Swift", expectedTitle: "Love Story" },
+  // 陈奕迅
+  { bvid: "BV1oW411m7UN", artist: "陈奕迅", expectedTitle: "十年" },
+  { bvid: "BV1Zs411U7AK", artist: "陈奕迅", expectedTitle: "浮夸" },
+  { bvid: "BV11x411F7nY", artist: "陈奕迅", expectedTitle: "富士山下" },
+  // 邓紫棋
+  { bvid: "BV1rE41187Zm", artist: "邓紫棋", expectedTitle: "光年之外" },
+  { bvid: "BV1Ai4y1o7TG", artist: "邓紫棋", expectedTitle: "泡沫" },
+  // 薛之谦
+  { bvid: "BV1Px411h7Zn", artist: "薛之谦", expectedTitle: "演员" },
+  { bvid: "BV1ux411y7BR", artist: "薛之谦", expectedTitle: "丑八怪" },
+  // 许嵩
+  { bvid: "BV1iJ411Y7wD", artist: "许嵩", expectedTitle: "有何不可" },
+  { bvid: "BV1Ft411m7f4", artist: "许嵩", expectedTitle: "素颜" },
+  // 张杰
+  { bvid: "BV1iW41187Qb", artist: "张杰", expectedTitle: "这就是爱" },
+  // 李荣浩
+  { bvid: "BV1Rt411Y7La", artist: "李荣浩", expectedTitle: "年少有为" },
+  { bvid: "BV1Kb411C7Tj", artist: "李荣浩", expectedTitle: "李白" },
+  // 毛不易
+  { bvid: "BV1hx411p7XJ", artist: "毛不易", expectedTitle: "消愁" },
+  // 周深
+  { bvid: "BV1Eb411P7PC", artist: "周深", expectedTitle: "大鱼" },
+  // 五月天
+  { bvid: "BV1hx411c7gv", artist: "五月天", expectedTitle: "突然好想你" },
+  { bvid: "BV12x411c7NC", artist: "五月天", expectedTitle: "倔强" },
+  // 凤凰传奇
+  { bvid: "BV1eW41187F9", artist: "凤凰传奇", expectedTitle: "最炫民族风" },
+  // 胡彦斌
+  { bvid: "BV1ox411F7Dp", artist: "胡彦斌", expectedTitle: "红颜" },
+  // 赵雷
+  { bvid: "BV1Sx41117pw", artist: "赵雷", expectedTitle: "成都" },
+  // 汪苏泷
+  { bvid: "BV1KJ411Y7Qd", artist: "汪苏泷", expectedTitle: "有点甜" },
+  // Alan Walker
+  { bvid: "BV1as41117nF", artist: "Alan Walker", expectedTitle: "Faded" },
+  // Westlife
+  { bvid: "BV1fx411c7Hm", artist: "Westlife", expectedTitle: "My Love" },
+  // Linkin Park
+  { bvid: "BV1nx411c7vS", artist: "Linkin Park", expectedTitle: "Numb" },
+  // Owl City
+  { bvid: "BV1jx411c7tk", artist: "Owl City", expectedTitle: "Fireflies" },
 ]
 
 // 要搜索的新歌曲列表（200+ 条目，覆盖 80+ 艺人）

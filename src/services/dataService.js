@@ -1,5 +1,7 @@
 // 数据服务：优先 API（开发/Vercel），降级静态数据（GitHub Pages）
 
+import { getNeteaseSourceByKeyword } from './neteaseService'
+
 const isDev = import.meta.env.DEV
 const API_BASE = 'https://tonzhon.whamon.com'
 
@@ -40,6 +42,20 @@ export async function getSongSource(newId) {
 
   // 4. 如果 API 都失败了，返回静态缓存（即使可能过期）
   if (staticUrl) return staticUrl
+
+  // 5. 降级到 Meting API 搜索（通过歌曲名+艺人名搜索网易云音乐）
+  try {
+    const songPool = await getSongPool()
+    const song = songPool.find(s => s.newId === newId)
+    if (song) {
+      const artistName = song.artists?.[0]?.name || ''
+      const keyword = `${artistName} ${song.name}`.trim()
+      if (keyword) {
+        const neteaseUrl = await getNeteaseSourceByKeyword(keyword)
+        if (neteaseUrl) return neteaseUrl
+      }
+    }
+  } catch (_) { /* Meting 降级也失败 */ }
 
   throw new Error('Failed to get song source')
 }
