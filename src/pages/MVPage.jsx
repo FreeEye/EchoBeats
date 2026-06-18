@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Film, Play, X, Minimize2, Maximize2, ExternalLink, Pause } from 'lucide-react'
+import { Film, Play, X, Minimize2, Maximize2, ExternalLink } from 'lucide-react'
 import { Button, Tabs, Input } from 'antd'
 import allMVs from '@/data/mvs.json'
 import { generateSongCover } from '@/utils/generateSongCover'
@@ -128,7 +128,7 @@ function MVCard({ mv, onPlay }) {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="truncate" style={{ fontSize: 12, color: '#8c8c8c', flex: 1 }}>
-            {mv.author || mv.artist}
+            {mv.displayArtist || mv.author || mv.artist}
           </span>
           {mv.play > 0 && (
             <span style={{ fontSize: 11, color: '#595959', flexShrink: 0, marginLeft: 8 }}>
@@ -143,40 +143,9 @@ function MVCard({ mv, onPlay }) {
 
 // 内嵌 MV 播放器（支持后台播放）
 function MVPlayer({ mv, onClose, onMinimize }) {
-  const iframeRef = useRef(null)
-  const [isOverlayPaused, setIsOverlayPaused] = useState(false)
-  const [feedbackIcon, setFeedbackIcon] = useState(null)
-  const feedbackTimerRef = useRef(null)
-
-  // 切换 MV 时重置状态
-  useEffect(() => {
-    setIsOverlayPaused(false)
-    setFeedbackIcon(null)
-    if (feedbackTimerRef.current) {
-      clearTimeout(feedbackTimerRef.current)
-      feedbackTimerRef.current = null
-    }
-  }, [mv?.bvid, mv?.page])
-
   if (!mv) return null
   const page = mv.page || 1
   const playerUrl = `https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&high_quality=1&as_wide=1&page=${page}`
-
-  const handleOverlayClick = () => {
-    if (iframeRef.current) {
-      const newPaused = !isOverlayPaused
-      setIsOverlayPaused(newPaused)
-      const cmd = newPaused ? { type: 'pause' } : { type: 'play' }
-      iframeRef.current.contentWindow?.postMessage(cmd, 'https://player.bilibili.com')
-
-      // 显示反馈图标
-      setFeedbackIcon(newPaused ? 'pause' : 'play')
-      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current)
-      feedbackTimerRef.current = setTimeout(() => {
-        setFeedbackIcon(null)
-      }, 600)
-    }
-  }
 
   const bilibiliUrl = `https://www.bilibili.com/video/${mv.bvid}${mv.page > 1 ? `?p=${mv.page}` : ''}`
 
@@ -250,11 +219,11 @@ function MVPlayer({ mv, onClose, onMinimize }) {
           </button>
         </div>
       </div>
-      {/* 播放器 */}
+      {/* 播放器 — sandbox 阻止跳转B站，保留播放器原生控制 */}
       <div style={{ position: 'relative', paddingTop: '56.25%' }}>
         <iframe
-          ref={iframeRef}
           src={playerUrl}
+          sandbox="allow-scripts allow-same-origin allow-presentation"
           style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none',
           }}
@@ -262,37 +231,6 @@ function MVPlayer({ mv, onClose, onMinimize }) {
           allowFullScreen
           referrerPolicy="no-referrer"
         />
-        {/* 透明覆盖层 — 拦截点击，通过 postMessage 控制播放/暂停 */}
-        <div
-          onClick={handleOverlayClick}
-          style={{
-            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-            cursor: 'pointer', zIndex: 1,
-          }}
-        >
-          {/* 播放/暂停反馈图标 */}
-          {feedbackIcon && (
-            <div style={{
-              position: 'absolute',
-              top: '50%', left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 64, height: 64,
-              borderRadius: '50%',
-              background: 'rgba(0,0,0,0.6)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: 'feedbackFadeIn 0.15s ease-out',
-              pointerEvents: 'none',
-            }}>
-              {feedbackIcon === 'play' ? (
-                <Play size={28} color="#fff" style={{ marginLeft: 3 }} />
-              ) : (
-                <Pause size={28} color="#fff" />
-              )}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   )
@@ -356,17 +294,31 @@ export default function MVPage() {
     document.title = 'EchoBeats - MV精选'
   }, [])
 
-  // 提取所有艺人
-  const artists = [...new Set(allMVs.map((m) => m.artist))].sort()
+  // 提取所有艺人（含合集条目匹配到的艺人）
+  const defaultArtists = [...new Set(allMVs.filter(m => m.artist !== '合集').map((m) => m.artist))].sort()
 
-  // 按 Tab 过滤（合集条目如其标题包含当前艺人名也一并显示）
+  // 为合集条目匹配已知艺人（根据标题检测）
+  const enrichedMVs = allMVs.map((m) => {
+    if (m.artist === '合集') {
+      const title = (m.title || '').toLowerCase()
+      const collTitle = (m.collectionTitle || '').toLowerCase()
+      for (const a of defaultArtists) {
+        const al = a.toLowerCase()
+        if (title.includes(al) || collTitle.includes(al)) {
+          return { ...m, displayArtist: a, isCollectionMatch: true }
+        }
+      }
+    }
+    return { ...m, displayArtist: m.artist }
+  })
+
+  const artists = [...new Set(enrichedMVs.map((m) => m.displayArtist))].sort()
+
+  // 按 Tab 过滤
   const tabFiltered =
     activeTab === 'all'
-      ? allMVs
-      : allMVs.filter((m) =>
-          m.artist === activeTab ||
-          (m.artist === '合集' && (m.title?.includes(activeTab) || m.collectionTitle?.includes(activeTab)))
-        )
+      ? enrichedMVs
+      : enrichedMVs.filter((m) => m.displayArtist === activeTab)
 
   // 按搜索词过滤（在 Tab 过滤之上叠加）
   const filtered = searchTerm.trim()
@@ -433,8 +385,8 @@ export default function MVPage() {
 
   // 生成 Tab items (top artists by count)
   const artistCounts = {}
-  allMVs.forEach((m) => {
-    artistCounts[m.artist] = (artistCounts[m.artist] || 0) + 1
+  enrichedMVs.forEach((m) => {
+    artistCounts[m.displayArtist] = (artistCounts[m.displayArtist] || 0) + 1
   })
   const topArtists = Object.entries(artistCounts)
     .sort((a, b) => b[1] - a[1])
@@ -442,7 +394,7 @@ export default function MVPage() {
     .map(([name]) => name)
 
   const tabItems = [
-    { key: 'all', label: `全部 (${allMVs.length})` },
+    { key: 'all', label: `全部 (${enrichedMVs.length})` },
     ...topArtists.map((a) => ({
       key: a,
       label: `${a} (${artistCounts[a]})`,
@@ -462,7 +414,7 @@ export default function MVPage() {
           MV 精选
         </h2>
         <p style={{ color: '#8c8c8c', fontSize: 14, margin: 0 }}>
-          共 {allMVs.length} 个 MV · {artists.length} 位艺人 · 显示 {displayed.length} 个
+          共 {enrichedMVs.length} 个 MV · {artists.length} 位艺人 · 显示 {displayed.length} 个
         </p>
         <div style={{ maxWidth: 400, margin: '16px auto 0' }}>
           <Input.Search
@@ -526,10 +478,6 @@ export default function MVPage() {
         @keyframes slideUp {
           from { transform: translateY(20px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes feedbackFadeIn {
-          from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-          to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
       `}</style>
     </div>
