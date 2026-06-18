@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { getSongPool, clientSearch, fetchAPIWithFallback } from '@/services/dataService'
 import { searchNetease } from '@/services/neteaseService'
+import { searchQQMusic } from '@/services/qqService'
 
 const SearchContext = createContext()
 
@@ -56,11 +57,12 @@ export const SearchProvider = ({ children }) => {
     let results = {}
     const encoded = encodeURIComponent(keyword)
 
-    const [ssRes, miguRes, kRes, neteaseRes] = await Promise.allSettled([
+    const [ssRes, miguRes, kRes, neteaseRes, qqRes] = await Promise.allSettled([
       fetchAPIWithFallback(`/api/ss?keyword=${encoded}`),
       fetchAPIWithFallback(`/api/s/m/${encoded}`),
       fetchAPIWithFallback(`/api/s/k/${encoded}`),
       searchNetease(keyword),
+      searchQQMusic(keyword),
     ])
 
     if (ssRes.status === 'fulfilled' && ssRes.value?.success && Array.isArray(ssRes.value.data) && ssRes.value.data.length > 0) {
@@ -74,6 +76,9 @@ export const SearchProvider = ({ children }) => {
     }
     if (neteaseRes.status === 'fulfilled' && Array.isArray(neteaseRes.value) && neteaseRes.value.length > 0) {
       results.netease = { searchSuccess: true, data: { songs: neteaseRes.value, totalCount: neteaseRes.value.length } }
+    }
+    if (qqRes.status === 'fulfilled' && Array.isArray(qqRes.value) && qqRes.value.length > 0) {
+      results.qq = { searchSuccess: true, data: { songs: qqRes.value, totalCount: qqRes.value.length } }
     }
 
     // 始终执行客户端搜索，补充服务端结果

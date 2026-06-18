@@ -265,11 +265,6 @@ function MVPlayer({ mv, onClose, onMinimize }) {
             cursor: 'pointer', zIndex: 1,
           }}
         >
-          {/* 遮住 Bilibili 播放器顶部"进入哔哩哔哩"链接 */}
-          <div style={{
-            position: 'absolute', top: 0, left: 0, width: '100%', height: 36,
-            background: '#0a0a0a', zIndex: 2, pointerEvents: 'none',
-          }} />
           {/* 播放/暂停反馈图标 */}
           {feedbackIcon && (
             <div style={{

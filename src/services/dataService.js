@@ -8,7 +8,7 @@ const API_BASE = 'https://tonzhon.whamon.com'
 // 主 API 可能缺失的热门歌曲（通过网易云音乐直接搜索补充）
 const MISSING_SONGS = [
   { name: '青花瓷', artist: '周杰伦' },
-  { name: '人间共鸣', artist: '郑源' },
+  { name: '人间共鸣', artist: '李健' },
 ]
 
 async function fetchAPI(path) {

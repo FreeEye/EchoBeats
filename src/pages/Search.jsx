@@ -107,21 +107,21 @@ export default function Search() {
               在 网易云音乐 搜索
             </a>
             <a
-              href={`https://www.baidu.com/s?wd=${encodeURIComponent((keyword ? decodeURIComponent(keyword) : '') + ' 歌曲')}`}
+              href={`https://y.qq.com/portal/search.html#page=1&searchid=1&remoteplace=txt.yqq.top&t=song&w=${encodeURIComponent(keyword ? decodeURIComponent(keyword) : '')}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{
                 padding: '8px 20px',
                 borderRadius: 8,
-                background: 'rgba(255, 165, 0, 0.1)',
-                color: '#FFA500',
+                background: 'rgba(29, 185, 84, 0.15)',
+                color: '#1DB954',
                 textDecoration: 'none',
                 fontSize: 14,
                 fontWeight: 500,
-                border: '1px solid rgba(255, 165, 0, 0.3)',
+                border: '1px solid rgba(29, 185, 84, 0.3)',
               }}
             >
-              在 百度 搜索
+              在 QQ音乐 搜索
             </a>
           </div>
         </div>
