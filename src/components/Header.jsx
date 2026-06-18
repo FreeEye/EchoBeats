@@ -36,6 +36,8 @@ export default function Header() {
           alignItems: 'center',
           gap: 20,
           padding: '8px 24px',
+          maxWidth: 1000,
+          margin: '0 auto',
         }}
       >
         <Link
@@ -87,6 +89,8 @@ export default function Header() {
           display: 'flex',
           gap: 4,
           padding: '0 24px 4px',
+          maxWidth: 1000,
+          margin: '0 auto',
         }}
       >
         {tabs.map((tab) => {

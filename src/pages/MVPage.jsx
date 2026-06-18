@@ -10,7 +10,9 @@ function MVCard({ mv, onPlay }) {
   const [imgError, setImgError] = useState(false)
   const uniqueKey = mv.page ? `${mv.bvid}_p${mv.page}` : (mv.bvid || mv.title)
   const fallbackBg = generateSongCover(uniqueKey)
-  const cardKey = mv.page ? `${mv.bvid}_p${mv.page}` : mv.bvid
+  const isCollection = mv.page && mv.collectionTitle
+  // 合集条目用生成背景区分，避免封面重复
+  const useGeneratedBg = isCollection
   return (
     <div
       className="mv-card"
@@ -36,12 +38,15 @@ function MVCard({ mv, onPlay }) {
       }}
     >
       <div style={{ position: 'relative', paddingTop: '56.25%', overflow: 'hidden' }}>
-        {imgError || !mv.pic ? (
+        {useGeneratedBg || imgError || !mv.pic ? (
           <div style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-            background: fallbackBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: fallbackBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
           }}>
             <Film size={36} color="#8c8c8c" />
+            {isCollection && (
+              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 4 }}>合集 · P{mv.page}</span>
+            )}
           </div>
         ) : (
           <img
@@ -354,11 +359,14 @@ export default function MVPage() {
   // 提取所有艺人
   const artists = [...new Set(allMVs.map((m) => m.artist))].sort()
 
-  // 按 Tab 过滤
+  // 按 Tab 过滤（合集条目如其标题包含当前艺人名也一并显示）
   const tabFiltered =
     activeTab === 'all'
       ? allMVs
-      : allMVs.filter((m) => m.artist === activeTab)
+      : allMVs.filter((m) =>
+          m.artist === activeTab ||
+          (m.artist === '合集' && (m.title?.includes(activeTab) || m.collectionTitle?.includes(activeTab)))
+        )
 
   // 按搜索词过滤（在 Tab 过滤之上叠加）
   const filtered = searchTerm.trim()

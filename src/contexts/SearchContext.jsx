@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { getSongPool, clientSearch, fetchAPIWithFallback } from '@/services/dataService'
 import { searchNetease } from '@/services/neteaseService'
 import { searchQQMusic } from '@/services/qqService'
+import { searchKuwo } from '@/services/kuwoService'
 
 const SearchContext = createContext()
 
@@ -57,12 +58,13 @@ export const SearchProvider = ({ children }) => {
     let results = {}
     const encoded = encodeURIComponent(keyword)
 
-    const [ssRes, miguRes, kRes, neteaseRes, qqRes] = await Promise.allSettled([
+    const [ssRes, miguRes, kRes, neteaseRes, qqRes, kuwoRes] = await Promise.allSettled([
       fetchAPIWithFallback(`/api/ss?keyword=${encoded}`),
       fetchAPIWithFallback(`/api/s/m/${encoded}`),
       fetchAPIWithFallback(`/api/s/k/${encoded}`),
       searchNetease(keyword),
       searchQQMusic(keyword),
+      searchKuwo(keyword),
     ])
 
     if (ssRes.status === 'fulfilled' && ssRes.value?.success && Array.isArray(ssRes.value.data) && ssRes.value.data.length > 0) {
@@ -79,6 +81,9 @@ export const SearchProvider = ({ children }) => {
     }
     if (qqRes.status === 'fulfilled' && Array.isArray(qqRes.value) && qqRes.value.length > 0) {
       results.qq = { searchSuccess: true, data: { songs: qqRes.value, totalCount: qqRes.value.length } }
+    }
+    if (kuwoRes.status === 'fulfilled' && Array.isArray(kuwoRes.value) && kuwoRes.value.length > 0) {
+      results.kuwo = { searchSuccess: true, data: { songs: kuwoRes.value, totalCount: kuwoRes.value.length } }
     }
 
     // 始终执行客户端搜索，补充服务端结果
