@@ -5,6 +5,12 @@ import { getNeteaseSourceByKeyword } from './neteaseService'
 const isDev = import.meta.env.DEV
 const API_BASE = 'https://tonzhon.whamon.com'
 
+// 主 API 可能缺失的热门歌曲（通过网易云音乐直接搜索补充）
+const MISSING_SONGS = [
+  { name: '青花瓷', artist: '周杰伦' },
+  { name: '人间共鸣', artist: '郑源' },
+]
+
 async function fetchAPI(path) {
   const res = await fetch(path, { credentials: 'include' })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -13,6 +19,17 @@ async function fetchAPI(path) {
 
 // 获取歌曲播放源 URL（优先静态缓存，其次 API，多级降级）
 export async function getSongSource(newId) {
+  // 0. 特殊处理：缺失歌曲直接通过网易云搜索获取
+  if (newId?.startsWith('missing_')) {
+    try {
+      const id = newId.replace('missing_', '')
+      const keyword = decodeURIComponent(id).replace(/_/g, ' ')
+      const neteaseUrl = await getNeteaseSourceByKeyword(keyword)
+      if (neteaseUrl) return neteaseUrl
+    } catch (_) {}
+    throw new Error('Failed to get song source')
+  }
+
   // 1. 优先从静态数据中获取预解析的播放 URL（GitHub Pages）
   let staticUrl = null
   if (!isDev) {
@@ -311,8 +328,36 @@ export function clientSearch(songs, keyword) {
     return { song, score: bestScore }
   })
 
-  return scored
+  const result = scored
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score)
     .map((item) => item.song)
+
+  // 补充搜索缺失歌曲（直接通过网易云获取源）
+  const missingMatches = []
+  for (const ms of MISSING_SONGS) {
+    const matchName = ms.name.toLowerCase().includes(kw) || kw.includes(ms.name.toLowerCase())
+    const matchArtist = ms.artist.toLowerCase().includes(kw) || kw.includes(ms.artist.toLowerCase())
+    if (matchName || matchArtist) {
+      // 避免和已有结果重复
+      const alreadyExists = result.some(s =>
+        s.name?.toLowerCase().includes(kw) &&
+        s.artists?.some(a => a.name?.toLowerCase().includes(ms.artist.toLowerCase()))
+      )
+      if (!alreadyExists) {
+        missingMatches.push({
+          newId: `missing_${encodeURIComponent(ms.artist + '_' + ms.name)}`,
+          name: ms.name,
+          alias: '',
+          artists: [{ name: ms.artist, id: 0 }],
+          album: { name: '', cover: '' },
+          source: null, // 播放时通过 Meting API 解析
+          cover: '',
+          provider: 'netease',
+        })
+      }
+    }
+  }
+
+  return [...result, ...missingMatches]
 }

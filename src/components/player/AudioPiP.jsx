@@ -377,7 +377,7 @@ function MiniPlayerInner({ onRestore, onClose, onPopout }) {
 }
 
 // ======================== MiniPlayer 容器 ========================
-export function MiniPlayer({ onRestore, onClose }) {
+export function MiniPlayer({ onRestore, onClose, onDesktopOpen }) {
   const songInPlayer = useSongInPlayerStore((s) => s.songInPlayer)
   const setSongInPlayer = useSongInPlayerStore((s) => s.setSongInPlayer)
   const listenlist = useListenlistStore((s) => s.listenlist)
@@ -404,10 +404,20 @@ export function MiniPlayer({ onRestore, onClose }) {
   // Build desktop popup with current song data
   const openDesktop = useCallback(async () => {
     if (!songInPlayer) return
-    if (desktopRef.current && !desktopRef.current.closed) {
-      desktopRef.current.focus()
-      return
+    // Already open? Focus it
+    if (desktopRef.current) {
+      if ('documentPictureInPicture' in window && desktopRef.current instanceof Window && !desktopRef.current.closed) {
+        try { desktopRef.current.focus() } catch (_) {}
+        return
+      }
+      if (!('documentPictureInPicture' in window) && !desktopRef.current.closed) {
+        desktopRef.current.focus()
+        return
+      }
     }
+    // Pause main player when desktop player opens
+    onDesktopOpen?.()
+
     // Get audio source
     let source = songSourceRef.current
     if (!source) {
@@ -420,12 +430,37 @@ export function MiniPlayer({ onRestore, onClose }) {
     const html = buildDesktopHTML(songInPlayer, source, faved, playModeRef.current, playlistData, currentIndex)
     const blob = new Blob([html], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
+
+    // 优先使用 Document Picture-in-Picture API（Chrome 116+）
+    if ('documentPictureInPicture' in window) {
+      try {
+        const pipWindow = await window.documentPictureInPicture.requestWindow({
+          width: 360,
+          height: 280,
+        })
+        // 将 PiP 窗口导航到 blob URL
+        pipWindow.document.write(html)
+        pipWindow.document.close()
+        desktopRef.current = pipWindow
+
+        // 监听 PiP 窗口关闭
+        pipWindow.addEventListener('pagehide', () => {
+          desktopRef.current = null
+          URL.revokeObjectURL(url)
+        })
+        return
+      } catch (_) {
+        // Document PiP 失败，降级到 window.open
+      }
+    }
+
+    // Fallback: 传统弹出窗口
     const pip = window.open(url, 'EchoBeats_Desktop',
       `width=360,height=280,left=${window.screen.width-400},top=${window.screen.height-320},resizable=yes,alwaysOnTop=yes,titlebar=no,location=no,toolbar=no,menubar=no,scrollbars=no`)
     if (!pip) { URL.revokeObjectURL(url); return }
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    setTimeout(() => URL.revokeObjectURL(url), 3000)
     desktopRef.current = pip
-  }, [songInPlayer, favorites, filteredListenlist, getPlaylistData])
+  }, [songInPlayer, favorites, filteredListenlist, getPlaylistData, onDesktopOpen])
 
   // Send playlist data to popup
   const sendPlaylistToDesktop = useCallback(() => {

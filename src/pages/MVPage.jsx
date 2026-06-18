@@ -8,7 +8,8 @@ const MV_PAGE_SIZE = 24
 
 function MVCard({ mv, onPlay }) {
   const [imgError, setImgError] = useState(false)
-  const fallbackBg = generateSongCover(mv.bvid || mv.title)
+  const uniqueKey = mv.page ? `${mv.bvid}_p${mv.page}` : (mv.bvid || mv.title)
+  const fallbackBg = generateSongCover(uniqueKey)
   const cardKey = mv.page ? `${mv.bvid}_p${mv.page}` : mv.bvid
   return (
     <div
@@ -79,6 +80,24 @@ function MVCard({ mv, onPlay }) {
         >
           <Play size={22} color="#fff" style={{ marginLeft: 3 }} />
         </div>
+        {mv.page && mv.collectionTitle && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              background: 'rgba(255,165,0,0.85)',
+              color: '#fff',
+              fontSize: 11,
+              fontWeight: 600,
+              padding: '2px 6px',
+              borderRadius: 4,
+              zIndex: 1,
+            }}
+          >
+            P{mv.page}
+          </div>
+        )}
         <div
           style={{
             position: 'absolute',
@@ -100,7 +119,7 @@ function MVCard({ mv, onPlay }) {
           style={{ fontSize: 13, fontWeight: 600, color: '#f0f0f0', marginBottom: 3, lineHeight: 1.3 }}
           title={mv.title}
         >
-          {mv.title}
+          {mv.page && mv.collectionTitle ? `P${mv.page} · ${mv.title}` : mv.title}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="truncate" style={{ fontSize: 12, color: '#8c8c8c', flex: 1 }}>
@@ -246,6 +265,11 @@ function MVPlayer({ mv, onClose, onMinimize }) {
             cursor: 'pointer', zIndex: 1,
           }}
         >
+          {/* 遮住 Bilibili 播放器顶部"进入哔哩哔哩"链接 */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: 36,
+            background: '#0a0a0a', zIndex: 2, pointerEvents: 'none',
+          }} />
           {/* 播放/暂停反馈图标 */}
           {feedbackIcon && (
             <div style={{
@@ -348,7 +372,8 @@ export default function MVPage() {
         return (
           m.title?.toLowerCase().includes(kw) ||
           m.artist?.toLowerCase().includes(kw) ||
-          m.author?.toLowerCase().includes(kw)
+          m.author?.toLowerCase().includes(kw) ||
+          m.collectionTitle?.toLowerCase().includes(kw)
         )
       })
     : tabFiltered

@@ -77,16 +77,22 @@ function Player() {
   const audioRef = useRef(null)
   const intervalRef = useRef(null)
   const retryRef = useRef(false)
+  const playbackPositions = useRef(new Map()) // 保存播放进度 newId -> currentTime
+  const resumeSeeked = useRef(false) // 标记是否已恢复过进度
 
   useEffect(() => {
     if (isMountedRef.current) {
       if (songInPlayer?.newId) {
-        // audioRef.current.pause();
+        // 保存当前歌曲播放进度
+        const prevNewId = songInPlayer.newId
+        if (audioRef.current && audioRef.current.currentTime > 3) {
+          playbackPositions.current.set(prevNewId, audioRef.current.currentTime)
+        }
         setSongSource(null)
         setMediaLoadingStatus('')
         retryRef.current = false
-        // setPlayProgress(0);
         setAudioCurrentTime(0)
+        resumeSeeked.current = false
         setPlaySignal(true)
       }
     } else {
@@ -223,6 +229,14 @@ function Player() {
   function onAudioLoadedData() {
     setMediaLoadingStatus('success')
     setSongDuration(audioRef.current.duration)
+    // 恢复上次播放进度
+    if (!resumeSeeked.current && songInPlayer?.newId) {
+      const savedTime = playbackPositions.current.get(songInPlayer.newId)
+      if (savedTime && savedTime < audioRef.current.duration - 3) {
+        audioRef.current.currentTime = savedTime
+        resumeSeeked.current = true
+      }
+    }
     // document.title = songInPlayer?.name;
     // sendSongToServer();
   }
@@ -600,7 +614,7 @@ function Player() {
         </div>
       </div>
       {/* 迷你悬浮播放条 */}
-      {isMini && <MiniPlayer onRestore={toggleMini} onClose={toggleMini} />}
+      {isMini && <MiniPlayer onRestore={toggleMini} onClose={toggleMini} onDesktopOpen={() => setPlaySignal(false)} />}
     </>
   )
 }
