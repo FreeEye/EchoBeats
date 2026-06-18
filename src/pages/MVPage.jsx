@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { Film, Play, X, Minimize2, Maximize2 } from 'lucide-react'
-import { Button, Tabs } from 'antd'
+import { Film, Play, X, Minimize2, Maximize2, ExternalLink, Pause } from 'lucide-react'
+import { Button, Tabs, Input } from 'antd'
 import allMVs from '@/data/mvs.json'
 import { generateSongCover } from '@/utils/generateSongCover'
 
@@ -119,9 +119,43 @@ function MVCard({ mv, onPlay }) {
 
 // 内嵌 MV 播放器（支持后台播放）
 function MVPlayer({ mv, onClose, onMinimize }) {
+  const iframeRef = useRef(null)
+  const [isOverlayPaused, setIsOverlayPaused] = useState(false)
+  const [feedbackIcon, setFeedbackIcon] = useState(null)
+  const feedbackTimerRef = useRef(null)
+
+  // 切换 MV 时重置状态
+  useEffect(() => {
+    setIsOverlayPaused(false)
+    setFeedbackIcon(null)
+    if (feedbackTimerRef.current) {
+      clearTimeout(feedbackTimerRef.current)
+      feedbackTimerRef.current = null
+    }
+  }, [mv?.bvid, mv?.page])
+
   if (!mv) return null
   const page = mv.page || 1
   const playerUrl = `https://player.bilibili.com/player.html?bvid=${mv.bvid}&autoplay=1&danmaku=0&high_quality=1&as_wide=1&page=${page}`
+
+  const handleOverlayClick = () => {
+    if (iframeRef.current) {
+      const newPaused = !isOverlayPaused
+      setIsOverlayPaused(newPaused)
+      const cmd = newPaused ? { type: 'pause' } : { type: 'play' }
+      iframeRef.current.contentWindow?.postMessage(cmd, 'https://player.bilibili.com')
+
+      // 显示反馈图标
+      setFeedbackIcon(newPaused ? 'pause' : 'play')
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current)
+      feedbackTimerRef.current = setTimeout(() => {
+        setFeedbackIcon(null)
+      }, 600)
+    }
+  }
+
+  const bilibiliUrl = `https://www.bilibili.com/video/${mv.bvid}${mv.page > 1 ? `?p=${mv.page}` : ''}`
+
   return (
     <div style={{
       background: '#0a0a0a',
@@ -149,6 +183,21 @@ function MVPlayer({ mv, onClose, onMinimize }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, flexShrink: 0, marginLeft: 12 }}>
+          <a
+            href={bilibiliUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="去B站观看"
+            style={{
+              background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6,
+              color: '#8c8c8c', cursor: 'pointer', padding: '4px 8px', display: 'flex',
+              alignItems: 'center', transition: 'all 0.2s', textDecoration: 'none',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#FFA500'; e.currentTarget.style.borderColor = 'rgba(255,165,0,0.4)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#8c8c8c'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+          >
+            <ExternalLink size={14} />
+          </a>
           <button
             onClick={onMinimize}
             title="最小化（继续后台播放）"
@@ -180,6 +229,7 @@ function MVPlayer({ mv, onClose, onMinimize }) {
       {/* 播放器 */}
       <div style={{ position: 'relative', paddingTop: '56.25%' }}>
         <iframe
+          ref={iframeRef}
           src={playerUrl}
           style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none',
@@ -188,6 +238,37 @@ function MVPlayer({ mv, onClose, onMinimize }) {
           allowFullScreen
           referrerPolicy="no-referrer"
         />
+        {/* 透明覆盖层 — 拦截点击，通过 postMessage 控制播放/暂停 */}
+        <div
+          onClick={handleOverlayClick}
+          style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            cursor: 'pointer', zIndex: 1,
+          }}
+        >
+          {/* 播放/暂停反馈图标 */}
+          {feedbackIcon && (
+            <div style={{
+              position: 'absolute',
+              top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 64, height: 64,
+              borderRadius: '50%',
+              background: 'rgba(0,0,0,0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'feedbackFadeIn 0.15s ease-out',
+              pointerEvents: 'none',
+            }}>
+              {feedbackIcon === 'play' ? (
+                <Play size={28} color="#fff" style={{ marginLeft: 3 }} />
+              ) : (
+                <Pause size={28} color="#fff" />
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -244,6 +325,7 @@ export default function MVPage() {
   const [playingMV, setPlayingMV] = useState(null)
   const [minimizedMV, setMinimizedMV] = useState(null)
   const [activeTab, setActiveTab] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('')
   const playerRef = useRef(null)
 
   useEffect(() => {
@@ -254,10 +336,22 @@ export default function MVPage() {
   const artists = [...new Set(allMVs.map((m) => m.artist))].sort()
 
   // 按 Tab 过滤
-  const filtered =
+  const tabFiltered =
     activeTab === 'all'
       ? allMVs
       : allMVs.filter((m) => m.artist === activeTab)
+
+  // 按搜索词过滤（在 Tab 过滤之上叠加）
+  const filtered = searchTerm.trim()
+    ? tabFiltered.filter((m) => {
+        const kw = searchTerm.toLowerCase()
+        return (
+          m.title?.toLowerCase().includes(kw) ||
+          m.artist?.toLowerCase().includes(kw) ||
+          m.author?.toLowerCase().includes(kw)
+        )
+      })
+    : tabFiltered
 
   const displayed = filtered.slice(0, displayCount)
   const hasMore = displayCount < filtered.length
@@ -269,6 +363,12 @@ export default function MVPage() {
   // 切换 Tab 时重置
   const handleTabChange = (key) => {
     setActiveTab(key)
+    setDisplayCount(MV_PAGE_SIZE)
+  }
+
+  // 搜索时重置分页
+  const handleSearch = (value) => {
+    setSearchTerm(value)
     setDisplayCount(MV_PAGE_SIZE)
   }
 
@@ -336,6 +436,19 @@ export default function MVPage() {
         <p style={{ color: '#8c8c8c', fontSize: 14, margin: 0 }}>
           共 {allMVs.length} 个 MV · {artists.length} 位艺人 · 显示 {displayed.length} 个
         </p>
+        <div style={{ maxWidth: 400, margin: '16px auto 0' }}>
+          <Input.Search
+            placeholder="搜索 MV 标题、艺人、作者..."
+            allowClear
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            onSearch={handleSearch}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              borderRadius: 8,
+            }}
+          />
+        </div>
       </div>
 
       <div className="panel">
@@ -385,6 +498,10 @@ export default function MVPage() {
         @keyframes slideUp {
           from { transform: translateY(20px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes feedbackFadeIn {
+          from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+          to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
       `}</style>
     </div>

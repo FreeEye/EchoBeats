@@ -210,6 +210,16 @@ function Player() {
       setPlayerMessage('Media Load Error')
     }
   }
+
+  // 播放失败自动切歌（所有重试已穷尽且非单曲循环模式）
+  useEffect(() => {
+    if (mediaLoadingStatus === 'error' && retryRef.current === false && playMode !== 'single') {
+      const timer = setTimeout(() => {
+        playNext()
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [mediaLoadingStatus, playMode])
   function onAudioLoadedData() {
     setMediaLoadingStatus('success')
     setSongDuration(audioRef.current.duration)
